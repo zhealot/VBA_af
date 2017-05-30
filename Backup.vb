@@ -28,6 +28,7 @@ Private Sub Document_Open()
         FN = Dir
     Wend
     Debug.Print Timer - tm
+    ThisDocument.Paragraphs.Add
+    ThisDocument.Paragraphs.Last.Range.Text = Date & ": " & Timer - tm
 End Sub
-
 
