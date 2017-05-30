@@ -137,19 +137,24 @@ Function CheckTB(fm As MSForms.Frame) As Boolean
 End Function
 
 'reaplace picture in header's contentcontrol
-Function ReplacePicInHeader(HF As HeaderFooter)
+Function ReplacePicInHeader(hf As HeaderFooter)
     Dim SCT As Section
     Dim CC As ContentControl
-    If HF.Range.ShapeRange.Count > 0 Then
-        If HF.Range.ShapeRange(1).TextFrame.TextRange Is Nothing Then End
-        If HF.Range.ShapeRange(1).TextFrame.TextRange.ContentControls.Count > 0 Then
-            Set CC = HF.Range.ShapeRange(1).TextFrame.TextRange.ContentControls(1)
-            If CC.Range.InlineShapes.Count > 0 Then
-                Set rg = CC.Range
-                CC.Range.InlineShapes(1).Delete         'in case been set before
-                Set rg = CC.Range
-                rg.InlineShapes.AddPicture fmMain.imgLogo.Tag, False, True, rg
+    If hf.Range.ShapeRange.Count > 0 Then
+        For i = 1 To hf.Range.ShapeRange.Count
+            If hf.Range.ShapeRange(i).Type = msoTextBox Then
+                If hf.Range.ShapeRange(i).TextFrame.TextRange.ContentControls.Count > 0 Then
+                    Set CC = hf.Range.ShapeRange(i).TextFrame.TextRange.ContentControls(1)
+                    If CC.Range.InlineShapes.Count > 0 Then
+                        Set rg = CC.Range
+                        CC.Range.InlineShapes(1).Delete         'in case been set before
+                        Set rg = CC.Range
+                        rg.InlineShapes.AddPicture fmMain.imgLogo.Tag, False, True, rg
+                    End If
+                End If
             End If
+        Next i
+        If hf.Range.ShapeRange(1).TextFrame.HasText <> 0 Then
         End If
     End If
 End Function
@@ -158,7 +163,18 @@ Sub test()
     Dim doc As Document
     Set doc = ThisDocument
     Dim rg As Range
-    If doc.Sections(1).Headers(wdHeaderFooterFirstPage).Range.ShapeRange(1).TextFrame.TextRange.ContentControls(1).Type = wdContentControlPicture Then
+    Dim hf5 As HeaderFooter
+    Dim hf1 As HeaderFooter
+    
+    Set hf5 = doc.Sections(5).Headers(wdHeaderFooterFirstPage)
+    Set hf1 = doc.Sections(1).Headers(wdHeaderFooterFirstPage)
+    Debug.Print hf.Shapes.Count
+    Debug.Print hf.Shapes.Count
+    Debug.Print hf.Range.ShapeRange.Count
+    
+    
+    
+    If doc.Sections(5).Headers(wdHeaderFooterFirstPage).Range.ShapeRange(1).TextFrame.TextRange.ContentControls(1).Type = wdContentControlPicture Then
         Set rg = doc.Sections(1).Headers(wdHeaderFooterFirstPage).Range.ShapeRange(1).TextFrame.TextRange.ContentControls(1).Range
         rg.InlineShapes(1).Delete
         Set rg = doc.Sections(1).Headers(wdHeaderFooterFirstPage).Range.ShapeRange(1).TextFrame.TextRange.ContentControls(1).Range

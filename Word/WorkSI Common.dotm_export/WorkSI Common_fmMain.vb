@@ -80,6 +80,7 @@ Private Sub btnOK_Click()
     Next i
     
     'find two consective section breaks and make it one
+    'there's a paragraph mark in between
     Set rg = doc.Content
     rg.Collapse wdCollapseStart
     With rg.Find
@@ -88,17 +89,18 @@ Private Sub btnOK_Click()
         .ClearHitHighlight
         .Forward = True
         .Wrap = wdFindContinue
-        .Text = "^b^b"
+        .Text = "^b^p^b"    'section break/paragraph mark/section break
         .Execute
         Do While .Found
-            rg.SetRange rg.Start, rg.End - 1    'VBA not allows replace with '^b' char, so instead we delete a section break char
-            rg.Text = ""
+            rg.SetRange rg.Start + 1, rg.End   'VBA not allows replace with '^b' char, so instead we delete a section break char
+            'rg.Text = ""
+            rg.Delete
             .Execute
         Loop
     End With
     
     '###TODO: insert logo image
-    Dim HF As HeaderFooter
+    Dim hf As HeaderFooter
     Dim SCT As Section
     For i = 1 To ActiveDocument.Sections.Count
         Set SCT = ActiveDocument.Sections(i)
@@ -135,7 +137,6 @@ Private Sub imgLogo_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByV
 
         If .Show = -1 Then
             img = .SelectedItems(1)
-            Debug.Print img
             'imgLogo.AutoSize = False
             'imgLogo.PictureSizeMode = fmPictureSizeModeZoom
             'imgLogo.PictureAlignment = fmPictureAlignmentCenter
@@ -215,6 +216,4 @@ Private Sub UserForm_Initialize()
     txtEmail.Text = ReadCP(txtEmail)
     txtPhone.Text = ReadCP(txtPhone)
     txtDate.Text = Format(Date, DATE_FORMAT)
-    
-    Debug.Print sdf
 End Sub
