@@ -29,11 +29,12 @@ End Sub
 
 'scan folder and add content of each docx as a building bolcks
 Sub AddBuildingBlock(control As IRibbonControl)
+    MsgBox "Please select a folder that contains templates."
     Application.ScreenUpdating = False
     Dim s As Long: s = Timer
     Dim doc As Document
-    Dim Fld As String
-    Dim File As String
+    Dim Fld As String   'folder name
+    Dim File As String  'file name
     Dim Ext As String: Ext = "*.docx"   'file extension
     Dim bbName As String   'name for building block
     Dim posNumeric As Integer  'position of numeric char in file name
@@ -50,6 +51,7 @@ Sub AddBuildingBlock(control As IRibbonControl)
         End If
     End With
     
+    'user pressed 'Cancel'
     If Fld = "" Then End
     
     'delete existing building blocks
@@ -63,13 +65,12 @@ Sub AddBuildingBlock(control As IRibbonControl)
        'Debug.Print File
        'check if file name starts with number
        If IsNumeric(Left(File, 1)) Then
-            
            bbName = Left(File, Len(File) - 5)
        'or has number in the middle
        Else
            For i = 1 To Len(File)
                If IsNumeric(Mid(File, i, 1)) Then
-                   posNumeric = i
+                   'posNumeric = i
                    bbName = Mid(File, i, Len(File) - i - 4)
                    Exit For
                End If
@@ -102,6 +103,7 @@ Sub AddBuildingBlock(control As IRibbonControl)
     ThisDocument.Save
     Application.ScreenUpdating = True
     Debug.Print Timer - s
+    MsgBox "Templates Updated!"
 End Sub
 
 'button visibility in ribbon
@@ -159,27 +161,30 @@ Function ReplacePicInHeader(hf As HeaderFooter)
     End If
 End Function
 
+'parse file name to make: '1a' comes before '10a', etc
+Function ParseFileName(s As String)
+    If Len(s) < 2 Then
+        ParseFileName = s
+    ElseIf IsNumeric(Left(s, 1)) Then
+        If Mid(s, 2, 1) = "." Or Not IsNumeric(Left(s, 2)) Then 'make '1.' to '01.', '1a' to '01a'
+            ParseFileName = "0" & s
+        ElseIf IsNumeric(Left(s, 2)) Then
+            ParseFileName = s
+        End If
+    End If
+End Function
+
 Sub test()
     Dim doc As Document
     Set doc = ThisDocument
     Dim rg As Range
     Dim hf5 As HeaderFooter
     Dim hf1 As HeaderFooter
-    
-    Set hf5 = doc.Sections(5).Headers(wdHeaderFooterFirstPage)
-    Set hf1 = doc.Sections(1).Headers(wdHeaderFooterFirstPage)
-    Debug.Print hf.Shapes.Count
-    Debug.Print hf.Shapes.Count
-    Debug.Print hf.Range.ShapeRange.Count
-    
-    
-    
-    If doc.Sections(5).Headers(wdHeaderFooterFirstPage).Range.ShapeRange(1).TextFrame.TextRange.ContentControls(1).Type = wdContentControlPicture Then
-        Set rg = doc.Sections(1).Headers(wdHeaderFooterFirstPage).Range.ShapeRange(1).TextFrame.TextRange.ContentControls(1).Range
-        rg.InlineShapes(1).Delete
-        Set rg = doc.Sections(1).Headers(wdHeaderFooterFirstPage).Range.ShapeRange(1).TextFrame.TextRange.ContentControls(1).Range
-        rg.InlineShapes.AddPicture "d:\temp\rad.JPG", False, True, rg
+    Set rg = doc.Content
+    rg.SetRange 0, 1
+    Debug.Print IIf(rg.Text = Chr(12), "yes", "no")
+    Debug.Print "^b"
+    If doc.Paragraphs(1).Range.Text = Chr(12) Then
+        Debug.Print "yes"
     End If
-    
 End Sub
-

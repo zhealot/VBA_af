@@ -7,7 +7,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-Public Selected As Boolean
-Public Name As String
-Public num As Integer
+Public Selected As Boolean  'selected in 'Templates' flag
+Public Name As String       'Building block name
 Public Description As String

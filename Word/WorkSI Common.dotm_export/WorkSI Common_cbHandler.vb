@@ -51,7 +51,7 @@ Private Sub cb_Click()
                     .Font.Size = FONT_SIZE
                     .Caption = blk.Name
                     .Tag = Left(.Caption, 2)
-                    .Value = Blocks(blk.num).Selected
+                    .Value = Blocks(i).Selected
                 End With
                 ReDim Preserve cbSelected(ckbCounter)
                 Set cbSelected(ckbCounter).cb = ckb

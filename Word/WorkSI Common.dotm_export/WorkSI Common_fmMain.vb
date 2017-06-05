@@ -99,6 +99,11 @@ Private Sub btnOK_Click()
         Loop
     End With
     
+    'delete section break on start of 1st page
+    If doc.Paragraphs(1).Range.Text = Chr(12) Then 'chr(12) is section break char
+        doc.Paragraphs(1).Range.Delete
+    End If
+    
     '###TODO: insert logo image
     Dim hf As HeaderFooter
     Dim SCT As Section
@@ -119,7 +124,6 @@ Private Sub btnOK_Click()
     doc.Fields.Update
     Application.ScreenUpdating = True
 End Sub
-
 
 Private Sub imgLogo_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
     Dim img As String
@@ -186,16 +190,21 @@ Private Sub UserForm_Initialize()
     For i = 1 To tmp.BuildingBlockEntries.Count
         ReDim Preserve Blocks(i - 1)
         Blocks(i - 1).Name = tmp.BuildingBlockEntries(i).Name
-        Blocks(i - 1).num = i - 1
         Blocks(i - 1).Selected = False
         Blocks(i - 1).Description = tmp.BuildingBlockEntries(i).Description
     Next i
     
     'sort on name
+    'put '1a' before '10'
     Dim bb As Block
+    Dim iNum As String  'digit of item i
+    Dim jNum As String  'digit of item j
     For i = 0 To UBound(Blocks)
-        For j = i To UBound(Blocks)
-            If Blocks(j).Name < Blocks(i).Name Then
+        For j = i + 1 To UBound(Blocks)
+            iNum = ParseFileName(Blocks(i).Name)
+            jNum = ParseFileName(Blocks(j).Name)
+            '####If Blocks(j).Name < Blocks(i).Name Then
+            If StrComp(jNum, iNum) < 0 Then
                 Set bb = Blocks(j)
                 Set Blocks(j) = Blocks(i)
                 Set Blocks(i) = bb
