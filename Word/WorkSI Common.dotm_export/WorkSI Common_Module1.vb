@@ -16,7 +16,7 @@ Public Const FONT_SIZE_LABEL = 12       'label font size
 Public Const WIDTH_LABEL = 240          'label width
 Public Const HEIGHT_LABEL = 16          'label height
 Public Const DATE_FORMAT = "dd-mmmm-yyyy" 'date format
-
+Public Const NUMBER_LIST_STYLE = "List Number"  'style for number list
 'collection to hold controls
 Public cbSections() As New cbHandler       'checkboxes in frame SECTION
 'Public cbTemplates() As CheckBox       'checkboxes in frame TEMPLATES
@@ -78,29 +78,42 @@ Sub AddBuildingBlock(control As IRibbonControl)
        End If
        'Debug.Print bbName
        Set doc = Documents.Open(Fld & File, ConfirmConversions:=False, ReadOnly:=True, Visible:=False)
-       
+       'Debug.Print doc.Name
        'add section breaks before add as Building Blocks
        Set rg = doc.Content
        rg.Collapse wdCollapseStart
-       rg.InsertBreak wdSectionBreakNextPage
+       rg.InsertBreak wdSectionBreakOddPage 'start new seciton on odd page
        Set rg = doc.Content
        rg.Collapse wdCollapseEnd
        rg.InsertBreak wdSectionBreakNextPage
-       Set rg = Nothing
-       
-       'add docx content to building blocks
-       'note: BB name can not be more than 32 chars
+       'in order to keeep the original formatting, copy and paste to thisdocument before adding it to BB
+       ThisDocument.Content.Delete
+       Set rg = doc.Content
+       rg.Copy
+       ThisDocument.Content.PasteAndFormat (wdFormatOriginalFormatting)
+       'work around: some templates need to be added to BB directly
+        Select Case Left(bbName, 2)
+            Case "7b"
+            Case "5e"
+                Set rg = doc.Content
+            Case Else
+                Set rg = ThisDocument.Content
+        End Select
+
+'       'add docx content to building blocks
+'       'note: BB name can not be more than 32 chars
        ThisDocument.AttachedTemplate.BuildingBlockEntries.Add Name:=Left(bbName, 32), _
                                                               Type:=wdTypeQuickParts, _
                                                               Category:="General", _
                                                               Description:=bbName, _
-                                                              Range:=doc.Content, _
+                                                              Range:=rg, _
                                                               InsertOptions:=wdInsertContent
        doc.Close False
-       'Application.StatusBar = "Progressing:" & bbName & ".docx"
        File = Dir  'get next file
     Wend   'end While File<>""
-    ThisDocument.Save
+    ThisDocument.Content.Delete
+    'ThisDocument.Save
+    ClearClipBoard
     Application.ScreenUpdating = True
     Debug.Print Timer - s
     MsgBox "Templates Updated!"
@@ -174,17 +187,18 @@ Function ParseFileName(s As String)
     End If
 End Function
 
-Sub test()
-    Dim doc As Document
-    Set doc = ThisDocument
+Public Function ClearClipBoard()
+    Dim oData   As New DataObject 'object to use the clipboard
+    oData.SetText Text:=Empty 'Clear
+    oData.PutInClipboard 'take in the clipboard to empty it
+End Function
+ 
+Sub steste()
     Dim rg As Range
-    Dim hf5 As HeaderFooter
-    Dim hf1 As HeaderFooter
-    Set rg = doc.Content
-    rg.SetRange 0, 1
-    Debug.Print IIf(rg.Text = Chr(12), "yes", "no")
-    Debug.Print "^b"
-    If doc.Paragraphs(1).Range.Text = Chr(12) Then
-        Debug.Print "yes"
-    End If
+    Set rg = Selection.Range.Paragraphs(1).Range
+    'rg.Collapse
+    'rg.ListFormat.ApplyListTemplate ListGalleries(wdOutlineNumberGallery).ListTemplates(7), True
+    
+    rg.Style = "List Number"
 End Sub
+

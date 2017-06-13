@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fmMain 
    Caption         =   "Work SI Template"
-   ClientHeight    =   12900
+   ClientHeight    =   10410
    ClientLeft      =   165
    ClientTop       =   585
-   ClientWidth     =   13395
+   ClientWidth     =   13185
    OleObjectBlob   =   "WorkSI Common_fmMain.frx":0000
 End
 Attribute VB_Name = "fmMain"
@@ -25,6 +25,9 @@ Private Sub btnCancel_Click()
 End Sub
 
 Private Sub btnOK_Click()
+    Dim tmrStart As Long
+    tmrStart = Timer
+    Dim tmrTmp As Long
     'validation
     If Not CheckTB(Me.fmInfo) Then
         MsgBox "Please enter content for this field."
@@ -49,6 +52,12 @@ Private Sub btnOK_Click()
         MsgBox "Please select at leat one template."
         Exit Sub
     End If
+    
+    'confirm
+    If MsgBox("Generate the document now based on your selections?", vbOKCancel) = vbCancel Then
+        Exit Sub
+    End If
+    
     'write back custom values
     WriteCP Me.txtAddress
     WriteCP Me.txtCompany
@@ -71,16 +80,49 @@ Private Sub btnOK_Click()
     Me.Hide
     doc.Content.Delete  'cleare content
     Dim rg As Range
+    Dim rgStart As Long 'start position before next BB insertion
+    Dim rgTmp As Range
+    Dim cntParsed As Integer
+    Dim blFirst As Boolean
+    tmrTmp = Timer      'set timer to measure each BB insertion
     For i = 0 To UBound(Blocks)
         Set rg = doc.Content
+        rgStart = rg.End
         rg.Collapse wdCollapseEnd     'set insert point to start
         If Blocks(i).Selected Then
             doc.AttachedTemplate.BuildingBlockEntries(Blocks(i).Name).Insert rg, True
+            'fix numbering issue: restart numbering of 1st paragraph then continue numbering for the rest
+            rg.SetRange rgStart, doc.Content.End
+            If rg.Paragraphs.Count > 0 Then
+                If rg.ListParagraphs.Count > 0 Then
+                    cntParsed = 0
+                    blFirst = True
+                    For j = 1 To rg.Paragraphs.Count
+                        If rg.Paragraphs(j).Range.ListParagraphs.Count > 0 Then
+                            If rg.Paragraphs(j).Range.ListFormat.ListType = wdListOutlineNumbering And IsNumeric(rg.Paragraphs(j).Range.ListFormat.ListString) Then
+                                Set rgTmp = rg.Paragraphs(j).Range
+                                rgTmp.Collapse
+                                rgTmp.Style = NUMBER_LIST_STYLE     '#TBT: apply style can set numbering correct
+                                If blFirst Then
+                                    rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, ContinuePreviousList:=False 'IIf(blFirst, False, True)
+                                    blFirst = False
+                                End If
+'                                cntParsed = cntParsed + 1
+'                                If cntParsed > 1 Then
+'                                    Exit For
+'                                End If
+                            End If
+                        End If
+                    Next j
+                End If
+            End If
         End If
     Next i
     
     'find two consective section breaks and make it one
     'there's a paragraph mark in between
+    tmrTmp = Timer  'timer to measure find & replace section breaks
+
     Set rg = doc.Content
     rg.Collapse wdCollapseStart
     With rg.Find
@@ -98,6 +140,7 @@ Private Sub btnOK_Click()
             .Execute
         Loop
     End With
+    Debug.Print "Delete section breaks: " & Timer - tmrTmp
     
     'delete section break on start of 1st page
     If doc.Paragraphs(1).Range.Text = Chr(12) Then 'chr(12) is section break char
@@ -107,6 +150,7 @@ Private Sub btnOK_Click()
     '###TODO: insert logo image
     Dim hf As HeaderFooter
     Dim SCT As Section
+    tmrTmp = Timer  'timer to measure insert logo
     For i = 1 To ActiveDocument.Sections.Count
         Set SCT = ActiveDocument.Sections(i)
         If SCT.Headers(wdHeaderFooterEvenPages).Exists Then
@@ -119,10 +163,12 @@ Private Sub btnOK_Click()
             ReplacePicInHeader SCT.Headers(wdHeaderFooterPrimary)
         End If
     Next i
+    Debug.Print "Insert logo: " & Timer - tmrTmp
     
     'update fields
     doc.Fields.Update
     Application.ScreenUpdating = True
+    Debug.Print Timer - tmrStart
 End Sub
 
 Private Sub imgLogo_MouseUp(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
