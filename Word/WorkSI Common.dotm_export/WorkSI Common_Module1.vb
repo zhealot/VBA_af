@@ -47,7 +47,6 @@ Sub AddBuildingBlock(control As IRibbonControl)
         .ButtonName = "OK"
         If .Show = -1 Then
             Fld = .SelectedItems(1) & "\"
-'            Debug.Print Fld
         End If
     End With
     
@@ -62,54 +61,53 @@ Sub AddBuildingBlock(control As IRibbonControl)
     'look if folder contains valid file (has a number in filename)
     File = Dir(Fld & Ext, vbNormal)
     While File <> ""
-       'Debug.Print File
-       'check if file name starts with number
-       If IsNumeric(Left(File, 1)) Then
-           bbName = Left(File, Len(File) - 5)
-       'or has number in the middle
-       Else
-           For i = 1 To Len(File)
-               If IsNumeric(Mid(File, i, 1)) Then
-                   'posNumeric = i
-                   bbName = Mid(File, i, Len(File) - i - 4)
-                   Exit For
-               End If
-           Next i
-       End If
-       'Debug.Print bbName
-       Set doc = Documents.Open(Fld & File, ConfirmConversions:=False, ReadOnly:=True, Visible:=False)
-       'Debug.Print doc.Name
-       'add section breaks before add as Building Blocks
-       Set rg = doc.Content
-       rg.Collapse wdCollapseStart
-       rg.InsertBreak wdSectionBreakOddPage 'start new seciton on odd page
-       Set rg = doc.Content
-       rg.Collapse wdCollapseEnd
-       rg.InsertBreak wdSectionBreakNextPage
-       'in order to keeep the original formatting, copy and paste to thisdocument before adding it to BB
-       ThisDocument.Content.Delete
-       Set rg = doc.Content
-       rg.Copy
-       ThisDocument.Content.PasteAndFormat (wdFormatOriginalFormatting)
-       'work around: some templates need to be added to BB directly
-        Select Case Left(bbName, 2)
-            Case "7b"
-            Case "5e"
-                Set rg = doc.Content
+        'check if file name starts with number
+        If IsNumeric(Left(File, 1)) Then
+            bbName = Left(File, Len(File) - 5)
+        'or has number in the middle
+        Else
+            For i = 1 To Len(File)
+                If IsNumeric(Mid(File, i, 1)) Then
+                    bbName = Mid(File, i, Len(File) - i - 4)
+                    Exit For
+                End If
+            Next i
+        End If
+        
+        'Debug.Print bbName
+        Set doc = Documents.Open(Fld & File, ConfirmConversions:=False, ReadOnly:=True, Visible:=False)
+        'add section breaks before add as Building Blocks
+        Set rg = doc.Content
+        rg.Collapse wdCollapseStart
+        rg.InsertBreak wdSectionBreakOddPage 'start new seciton on odd page
+        Set rg = doc.Content
+        rg.Collapse wdCollapseEnd
+        rg.InsertBreak wdSectionBreakNextPage
+        'in order to keeep the original formatting, copy and paste to thisdocument before adding it to BB
+        ThisDocument.Content.Delete
+        Set rg = doc.Content
+        rg.Copy
+        'work around: some templates need to be added to BB directly
+        Dim PasteMethod As Integer
+        Select Case LCase(Left(bbName, 2))
+            Case "7b", "5e"
+                PasteMethod = wdUseDestinationStylesRecovery
             Case Else
-                Set rg = ThisDocument.Content
+                PasteMethod = wdFormatOriginalFormatting
         End Select
-
+        ThisDocument.Content.PasteAndFormat PasteMethod
+        Set rg = ThisDocument.Content
 '       'add docx content to building blocks
 '       'note: BB name can not be more than 32 chars
-       ThisDocument.AttachedTemplate.BuildingBlockEntries.Add Name:=Left(bbName, 32), _
+        ThisDocument.AttachedTemplate.BuildingBlockEntries.Add Name:=Left(bbName, 32), _
                                                               Type:=wdTypeQuickParts, _
                                                               Category:="General", _
                                                               Description:=bbName, _
                                                               Range:=rg, _
                                                               InsertOptions:=wdInsertContent
-       doc.Close False
-       File = Dir  'get next file
+        doc.Close False
+        DoEvents
+        File = Dir  'get next file
     Wend   'end While File<>""
     ThisDocument.Content.Delete
     'ThisDocument.Save

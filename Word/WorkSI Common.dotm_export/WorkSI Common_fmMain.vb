@@ -93,13 +93,35 @@ Private Sub btnOK_Click()
             doc.AttachedTemplate.BuildingBlockEntries(Blocks(i).Name).Insert rg, True
             'fix numbering issue: restart numbering of 1st paragraph then continue numbering for the rest
             rg.SetRange rgStart, doc.Content.End
-            If rg.Paragraphs.Count > 0 Then
+            'work around to correct numbering in section 5e
+            If Left(Blocks(i).Name, 2) = "5e" Then
+                If rg.Tables.Count > 0 Then
+                    For cntTb = 1 To rg.Tables.Count
+                        DoEvents
+                        Dim rgTb As Range
+                        Set rgTb = rg.Tables(cntTb).Range
+                        Dim cl As Cell
+                        For Each cl In rgTb.Cells
+                            If cl.Range.ListParagraphs.Count > 0 Then
+                                For iPara = 1 To cl.Range.ListParagraphs.Count
+                                    DoEvents
+                                    Set rgTmp = cl.Range.ListParagraphs(iPara).Range
+                                    rgTmp.Collapse
+                                    rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, IIf(iPara = 1, False, True)
+                                Next iPara
+                            End If
+                        Next cl
+                    Next cntTb
+                End If
+            ElseIf rg.Paragraphs.Count > 0 Then
                 If rg.ListParagraphs.Count > 0 Then
                     cntParsed = 0
                     blFirst = True
                     For j = 1 To rg.Paragraphs.Count
+                        DoEvents
                         If rg.Paragraphs(j).Range.ListParagraphs.Count > 0 Then
-                            If rg.Paragraphs(j).Range.ListFormat.ListType = wdListOutlineNumbering And IsNumeric(rg.Paragraphs(j).Range.ListFormat.ListString) Then
+                            'If rg.Paragraphs(j).Range.ListFormat.ListType = wdListOutlineNumbering And IsNumeric(rg.Paragraphs(j).Range.ListFormat.ListString) Then
+                            If IsNumeric(rg.Paragraphs(j).Range.ListFormat.ListString) Then
                                 Set rgTmp = rg.Paragraphs(j).Range
                                 rgTmp.Collapse
                                 rgTmp.Style = NUMBER_LIST_STYLE     '#TBT: apply style can set numbering correct
@@ -107,10 +129,6 @@ Private Sub btnOK_Click()
                                     rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, ContinuePreviousList:=False 'IIf(blFirst, False, True)
                                     blFirst = False
                                 End If
-'                                cntParsed = cntParsed + 1
-'                                If cntParsed > 1 Then
-'                                    Exit For
-'                                End If
                             End If
                         End If
                     Next j
