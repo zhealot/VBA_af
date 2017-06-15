@@ -58,6 +58,11 @@ Private Sub btnOK_Click()
         Exit Sub
     End If
     
+    Me.Hide
+    'to reduce processing time, make it invisible first
+    Application.Visible = False
+    Application.ScreenUpdating = False
+    
     'write back custom values
     WriteCP Me.txtAddress
     WriteCP Me.txtCompany
@@ -70,7 +75,6 @@ Private Sub btnOK_Click()
     'insert building blocks
     Dim doc As Document
     Set doc = ActiveDocument
-    Application.ScreenUpdating = False
     If Len(doc.Content.Text) > 1 Then
         If MsgBox("Would you like to delete content in document and create a new one?", vbYesNo) = vbNo Then
             Exit Sub
@@ -94,29 +98,36 @@ Private Sub btnOK_Click()
             'fix numbering issue: restart numbering of 1st paragraph then continue numbering for the rest
             rg.SetRange rgStart, doc.Content.End
             'work around to correct numbering in section 5e
+            Dim tm5E
+            tm5E = Timer
             If Left(Blocks(i).Name, 2) = "5e" Then
                 If rg.Tables.Count > 0 Then
                     For cntTb = 1 To rg.Tables.Count
+                        tm5Etb = Timer
                         DoEvents
                         Dim rgTb As Range
                         Set rgTb = rg.Tables(cntTb).Range
                         Dim cl As Cell
                         For Each cl In rgTb.Cells
                             If cl.Range.ListParagraphs.Count > 0 Then
-                                For iPara = 1 To cl.Range.ListParagraphs.Count
+                                'For iPara = 1 To cl.Range.ListParagraphs.Count
                                     DoEvents
-                                    Set rgTmp = cl.Range.ListParagraphs(iPara).Range
+                                    Set rgTmp = cl.Range.ListParagraphs(1).Range
                                     rgTmp.Collapse
-                                    rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, IIf(iPara = 1, False, True)
-                                Next iPara
+                                    rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, False ' IIf(iPara = 1, False, True)
+                                'Next iPara
                             End If
                         Next cl
+                        Debug.Print "5e tables: " & Timer - tm5Etb
                     Next cntTb
                 End If
+                Debug.Print "5e: " & Timer - tm5E
             ElseIf rg.Paragraphs.Count > 0 Then
+                tm7 = Timer
                 If rg.ListParagraphs.Count > 0 Then
                     cntParsed = 0
                     blFirst = True
+                    Debug.Print Blocks(i).Name
                     For j = 1 To rg.Paragraphs.Count
                         DoEvents
                         If rg.Paragraphs(j).Range.ListParagraphs.Count > 0 Then
@@ -132,11 +143,12 @@ Private Sub btnOK_Click()
                             End If
                         End If
                     Next j
+                    Debug.Print "7: " & Timer - tm7
                 End If
             End If
         End If
     Next i
-    
+    Debug.Print "Insert: " & Timer - tmrTmp
     'find two consective section breaks and make it one
     'there's a paragraph mark in between
     tmrTmp = Timer  'timer to measure find & replace section breaks
@@ -185,7 +197,12 @@ Private Sub btnOK_Click()
     
     'update fields
     doc.Fields.Update
+    Set rg = doc.Content
+    rg.Collapse wdCollapseStart
+    rg.Select
     Application.ScreenUpdating = True
+    Application.Visible = True
+    Application.Activate
     Debug.Print Timer - tmrStart
 End Sub
 
