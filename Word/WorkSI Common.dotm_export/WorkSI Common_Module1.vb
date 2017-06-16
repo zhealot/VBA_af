@@ -17,6 +17,7 @@ Public Const WIDTH_LABEL = 240          'label width
 Public Const HEIGHT_LABEL = 16          'label height
 Public Const DATE_FORMAT = "dd-mmmm-yyyy" 'date format
 Public Const NUMBER_LIST_STYLE = "List Number"  'style for number list
+Public Const NUMBER_LIST_2_STYLE = "List Number 2" 'style for number list 2
 'collection to hold controls
 Public cbSections() As New cbHandler       'checkboxes in frame SECTION
 'Public cbTemplates() As CheckBox       'checkboxes in frame TEMPLATES
@@ -90,7 +91,7 @@ Sub AddBuildingBlock(control As IRibbonControl)
         'work around: some templates need to be added to BB directly
         Dim PasteMethod As Integer
         Select Case LCase(Left(bbName, 2))
-            Case "7b", "5e"
+            Case "1.", "7b", "5a", "5e"
                 PasteMethod = wdUseDestinationStylesRecovery
             Case Else
                 PasteMethod = wdFormatOriginalFormatting

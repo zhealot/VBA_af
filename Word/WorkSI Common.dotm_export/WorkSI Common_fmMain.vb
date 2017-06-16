@@ -59,8 +59,17 @@ Private Sub btnOK_Click()
     End If
     
     Me.Hide
+    Dim blHide As Boolean   'flag whether hide main document during processing
+    blHide = False
+    Dim doc As Document
+    Set doc = ActiveDocument
+    If blHide Then
+        Dim docTmp As Document  'dummy document to show when hiding the main one
+        Set docTmp = Documents.Add
+        docTmp.Activate
+    End If
     'to reduce processing time, make it invisible first
-    Application.Visible = False
+    doc.Windows(1).Visible = Not blHide
     Application.ScreenUpdating = False
     
     'write back custom values
@@ -73,8 +82,6 @@ Private Sub btnOK_Click()
     WriteCP Me.txtPhone
 
     'insert building blocks
-    Dim doc As Document
-    Set doc = ActiveDocument
     If Len(doc.Content.Text) > 1 Then
         If MsgBox("Would you like to delete content in document and create a new one?", vbYesNo) = vbNo Then
             Exit Sub
@@ -100,7 +107,9 @@ Private Sub btnOK_Click()
             'work around to correct numbering in section 5e
             Dim tm5E
             tm5E = Timer
-            If Left(Blocks(i).Name, 2) = "5e" Then
+            Select Case LCase(Left(Blocks(i).Name, 2))
+                Case "5e"
+'            If Left(Blocks(i).Name, 2) = "5e" Then
                 If rg.Tables.Count > 0 Then
                     For cntTb = 1 To rg.Tables.Count
                         tm5Etb = Timer
@@ -110,19 +119,26 @@ Private Sub btnOK_Click()
                         Dim cl As Cell
                         For Each cl In rgTb.Cells
                             If cl.Range.ListParagraphs.Count > 0 Then
-                                'For iPara = 1 To cl.Range.ListParagraphs.Count
+                                For cPr = 1 To cl.Range.ListParagraphs.Count
                                     DoEvents
-                                    Set rgTmp = cl.Range.ListParagraphs(1).Range
-                                    rgTmp.Collapse
-                                    rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, False ' IIf(iPara = 1, False, True)
-                                'Next iPara
+                                    Set rgTmp = cl.Range.ListParagraphs(cPr).Range
+                                    rgTmp.Collapse wdCollapseStart
+                                    rgTmp.Style = NUMBER_LIST_2_STYLE 'rgTmp.Style   'set style to correct potential issue
+                                    If cPr = 1 Then
+                                        If Not rgTmp.ListFormat.ListTemplate Is Nothing Then
+                                            rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, False
+                                        End If
+                                        rgTmp.ParagraphFormat.Alignment = wdAlignParagraphLeft
+                                    End If
+                                Next cPr
                             End If
                         Next cl
                         Debug.Print "5e tables: " & Timer - tm5Etb
                     Next cntTb
                 End If
                 Debug.Print "5e: " & Timer - tm5E
-            ElseIf rg.Paragraphs.Count > 0 Then
+            'ElseIf rg.Paragraphs.Count > 0 Then
+            Case "5a", "7b"
                 tm7 = Timer
                 If rg.ListParagraphs.Count > 0 Then
                     cntParsed = 0
@@ -135,9 +151,11 @@ Private Sub btnOK_Click()
                             If IsNumeric(rg.Paragraphs(j).Range.ListFormat.ListString) Then
                                 Set rgTmp = rg.Paragraphs(j).Range
                                 rgTmp.Collapse
-                                rgTmp.Style = NUMBER_LIST_STYLE     '#TBT: apply style can set numbering correct
+                                rgTmp.Style = rgTmp.Style 'NUMBER_LIST_STYLE     '#TBT: apply style can set numbering correct
                                 If blFirst Then
-                                    rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, ContinuePreviousList:=False 'IIf(blFirst, False, True)
+                                    If Not rgTmp.ListFormat.ListTemplate Is Nothing Then
+                                        rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, ContinuePreviousList:=False 'IIf(blFirst, False, True)
+                                    End If
                                     blFirst = False
                                 End If
                             End If
@@ -145,7 +163,8 @@ Private Sub btnOK_Click()
                     Next j
                     Debug.Print "7: " & Timer - tm7
                 End If
-            End If
+            End Select
+            'End If
         End If
     Next i
     Debug.Print "Insert: " & Timer - tmrTmp
@@ -181,8 +200,8 @@ Private Sub btnOK_Click()
     Dim hf As HeaderFooter
     Dim SCT As Section
     tmrTmp = Timer  'timer to measure insert logo
-    For i = 1 To ActiveDocument.Sections.Count
-        Set SCT = ActiveDocument.Sections(i)
+    For i = 1 To doc.Sections.Count
+        Set SCT = doc.Sections(i)
         If SCT.Headers(wdHeaderFooterEvenPages).Exists Then
             ReplacePicInHeader SCT.Headers(wdHeaderFooterEvenPages)
         End If
@@ -200,9 +219,12 @@ Private Sub btnOK_Click()
     Set rg = doc.Content
     rg.Collapse wdCollapseStart
     rg.Select
+    If blHide Then
+        docTmp.Close False
+    End If
+    doc.Windows(1).Visible = True
     Application.ScreenUpdating = True
-    Application.Visible = True
-    Application.Activate
+    doc.Activate
     Debug.Print Timer - tmrStart
 End Sub
 
