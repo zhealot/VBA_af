@@ -104,65 +104,123 @@ Private Sub btnOK_Click()
             doc.AttachedTemplate.BuildingBlockEntries(Blocks(i).Name).Insert rg, True
             'fix numbering issue: restart numbering of 1st paragraph then continue numbering for the rest
             rg.SetRange rgStart, doc.Content.End
-            'work around to correct numbering in section 5e
+            'work around to correct layout formatting and/or numbering in sections
             Dim tm5E
             tm5E = Timer
+            On Error Resume Next
             Select Case LCase(Left(Blocks(i).Name, 2))
+                Case "1a", "1b"
+                    If rg.Tables.Count > 0 Then
+                        ParaIndentment rg.Tables(1).Range
+                    End If
+                Case "4f"
+                    If rg.Tables.Count > 0 Then
+                        rg.Tables(1).Range.Style = "Normal"
+                        rg.Tables(1).Cell(1, 1).Range.Font.Bold = True
+                    End If
+                Case "5b"
+                    If rg.Tables.Count > 3 Then
+                        ParaIndentment rg.Tables(1).Range
+                        ParaIndentment rg.Tables(3).Range
+                    End If
+                Case "5c"
+                    If rg.Tables.Count > 4 Then
+                        ParaIndentment rg.Tables(1).Range
+                        rg.Tables(1).Cell(1, 1).Range.Font.Bold = True
+                        rg.Tables(1).Cell(2, 1).Range.Font.Bold = True
+                        ParaIndentment rg.Tables(3).Range
+                        ParaIndentment rg.Tables(5).Range
+                    End If
                 Case "5e"
-'            If Left(Blocks(i).Name, 2) = "5e" Then
-                If rg.Tables.Count > 0 Then
-                    For cntTb = 1 To rg.Tables.Count
-                        tm5Etb = Timer
-                        DoEvents
-                        Dim rgTb As Range
-                        Set rgTb = rg.Tables(cntTb).Range
-                        Dim cl As Cell
-                        For Each cl In rgTb.Cells
-                            If cl.Range.ListParagraphs.Count > 0 Then
-                                For cPr = 1 To cl.Range.ListParagraphs.Count
-                                    DoEvents
-                                    Set rgTmp = cl.Range.ListParagraphs(cPr).Range
-                                    rgTmp.Collapse wdCollapseStart
-                                    rgTmp.Style = NUMBER_LIST_2_STYLE 'rgTmp.Style   'set style to correct potential issue
-                                    If cPr = 1 Then
-                                        If Not rgTmp.ListFormat.ListTemplate Is Nothing Then
-                                            rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, False
+                    If rg.Tables.Count > 0 Then
+'                        'table 1
+'                        rg.Tables(1).Range.Style = "Normal"
+'                        rg.Tables(1).Range.ParagraphFormat.SpaceAfter = 0
+'                        rg.Tables(1).Cell(1, 1).Range.Style = "Note"
+'                        'table 3
+'                        rg.Tables(3).Range.Style = "Normal"
+'                        rg.Tables(3).Rows(1).Range.ParagraphFormat.SpaceAfter = 0
+'                        rg.Tables(3).Rows(2).Range.ParagraphFormat.SpaceAfter = 0
+'                        rg.Tables(3).Rows(3).Range.ParagraphFormat.SpaceAfter = 0
+'                        rg.Tables(3).Rows(4).Range.ParagraphFormat.SpaceAfter = 0
+'                        rg.Tables(3).Rows(3).Range.Font.Bold = True
+'                        rg.Tables(3).Rows(6).Range.Font.Bold = True
+                        'sort out numbering
+                        For cntTb = 1 To rg.Tables.Count
+                            tm5Etb = Timer
+                            DoEvents
+                            Dim rgTb As Range
+                            Set rgTb = rg.Tables(cntTb).Range
+                            Dim cl As Cell
+                            For Each cl In rgTb.Cells
+                                If cl.Range.ListParagraphs.Count > 0 Then
+                                    For cPr = 1 To cl.Range.ListParagraphs.Count
+                                        DoEvents
+                                        Set rgTmp = cl.Range.ListParagraphs(cPr).Range
+                                        rgTmp.Collapse wdCollapseStart
+                                        rgTmp.Style = NUMBER_LIST_2_STYLE 'rgTmp.Style   'set style to correct potential issue
+                                        If cPr = 1 Then
+                                            If Not rgTmp.ListFormat.ListTemplate Is Nothing Then
+                                                rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, False
+                                            End If
+                                            rgTmp.ParagraphFormat.Alignment = wdAlignParagraphLeft
                                         End If
-                                        rgTmp.ParagraphFormat.Alignment = wdAlignParagraphLeft
+                                    Next cPr
+                                End If
+                            Next cl
+                            Debug.Print "5e tables: " & Timer - tm5Etb
+                        Next cntTb
+                    End If
+                    Debug.Print "5e: " & Timer - tm5E
+                Case "5f"
+                    If rg.Tables.Count > 0 Then
+                        ParaIndentment rg.Tables(1).Range
+                    End If
+                Case "5a", "7b"
+                    tm7 = Timer
+                    If rg.ListParagraphs.Count > 0 Then
+                        cntParsed = 0
+                        blFirst = True
+                        Debug.Print Blocks(i).Name
+                        For j = 1 To rg.Paragraphs.Count
+                            DoEvents
+                            If rg.Paragraphs(j).Range.ListParagraphs.Count > 0 Then
+                                'If rg.Paragraphs(j).Range.ListFormat.ListType = wdListOutlineNumbering And IsNumeric(rg.Paragraphs(j).Range.ListFormat.ListString) Then
+                                If IsNumeric(rg.Paragraphs(j).Range.ListFormat.ListString) Then
+                                    Set rgTmp = rg.Paragraphs(j).Range
+                                    rgTmp.Collapse
+                                    rgTmp.Style = rgTmp.Style 'NUMBER_LIST_STYLE     '#TBT: apply style can set numbering correct
+                                    If blFirst Then
+                                        If Not rgTmp.ListFormat.ListTemplate Is Nothing Then
+                                            rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, ContinuePreviousList:=False 'IIf(blFirst, False, True)
+                                        End If
+                                        blFirst = False
                                     End If
-                                Next cPr
-                            End If
-                        Next cl
-                        Debug.Print "5e tables: " & Timer - tm5Etb
-                    Next cntTb
-                End If
-                Debug.Print "5e: " & Timer - tm5E
-            'ElseIf rg.Paragraphs.Count > 0 Then
-            Case "5a", "7b"
-                tm7 = Timer
-                If rg.ListParagraphs.Count > 0 Then
-                    cntParsed = 0
-                    blFirst = True
-                    Debug.Print Blocks(i).Name
-                    For j = 1 To rg.Paragraphs.Count
-                        DoEvents
-                        If rg.Paragraphs(j).Range.ListParagraphs.Count > 0 Then
-                            'If rg.Paragraphs(j).Range.ListFormat.ListType = wdListOutlineNumbering And IsNumeric(rg.Paragraphs(j).Range.ListFormat.ListString) Then
-                            If IsNumeric(rg.Paragraphs(j).Range.ListFormat.ListString) Then
-                                Set rgTmp = rg.Paragraphs(j).Range
-                                rgTmp.Collapse
-                                rgTmp.Style = rgTmp.Style 'NUMBER_LIST_STYLE     '#TBT: apply style can set numbering correct
-                                If blFirst Then
-                                    If Not rgTmp.ListFormat.ListTemplate Is Nothing Then
-                                        rgTmp.ListFormat.ApplyListTemplate rgTmp.ListFormat.ListTemplate, ContinuePreviousList:=False 'IIf(blFirst, False, True)
-                                    End If
-                                    blFirst = False
                                 End If
                             End If
-                        End If
-                    Next j
-                    Debug.Print "7: " & Timer - tm7
-                End If
+                        Next j
+                        Debug.Print "7: " & Timer - tm7
+                    End If
+                Case "7c"
+                    If rg.Tables.Count > 5 Then
+                        ParaIndentment rg.Tables(1).Range
+                        rg.Tables(1).Range.Font.Bold = True
+                        ParaIndentment rg.Tables(3).Range
+                        rg.Tables(3).Range.Font.Bold = True
+                        ParaIndentment rg.Tables(4).Range
+                        ParaIndentment rg.Tables(6).Range
+                    End If
+                Case "7d"
+                    If rg.Tables.Count > 3 Then
+                        ParaIndentment rg.Tables(1).Range
+                        rg.Tables(1).Range.Font.Bold = True
+                        ParaIndentment rg.Tables(3).Range
+                        ParaIndentment rg.Tables(4).Range
+                    End If
+                Case "8b"
+                    If rg.Tables.Count > 3 Then
+                        ParaIndentment rg.Tables(1).Range
+                    End If
             End Select
             'End If
         End If
@@ -180,10 +238,10 @@ Private Sub btnOK_Click()
         .ClearHitHighlight
         .Forward = True
         .Wrap = wdFindContinue
-        .Text = "^b^p^b"    'section break/paragraph mark/section break
+        .Text = "^b^p^p^b"    'section break/paragraph mark/section break
         .Execute
         Do While .Found
-            rg.SetRange rg.Start + 1, rg.End   'VBA not allows replace with '^b' char, so instead we delete a section break char
+            rg.SetRange rg.Start + 1, rg.End 'rg.Start + 1, rg.End   'VBA not allows replace with '^b' char, so instead we delete a section break char
             'rg.Text = ""
             rg.Delete
             .Execute

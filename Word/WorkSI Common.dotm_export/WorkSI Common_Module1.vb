@@ -90,16 +90,17 @@ Sub AddBuildingBlock(control As IRibbonControl)
         rg.Copy
         'work around: some templates need to be added to BB directly
         Dim PasteMethod As Integer
-        Select Case LCase(Left(bbName, 2))
-            Case "1.", "7b", "5a", "5e"
-                PasteMethod = wdUseDestinationStylesRecovery
-            Case Else
-                PasteMethod = wdFormatOriginalFormatting
-        End Select
-        ThisDocument.Content.PasteAndFormat PasteMethod
+        PasteMethod = wdUseDestinationStylesRecovery
+'        Select Case LCase(Left(bbName, 2))
+'            Case "1.", "7b", "5a", "5e"
+'                PasteMethod = wdUseDestinationStylesRecovery
+'            Case Else
+'                PasteMethod = wdFormatOriginalFormatting
+'        End Select
+         ThisDocument.Content.PasteAndFormat PasteMethod
         Set rg = ThisDocument.Content
-'       'add docx content to building blocks
-'       'note: BB name can not be more than 32 chars
+       'add docx content to building blocks
+       'note: BB name can not be more than 32 chars
         ThisDocument.AttachedTemplate.BuildingBlockEntries.Add Name:=Left(bbName, 32), _
                                                               Type:=wdTypeQuickParts, _
                                                               Category:="General", _
@@ -201,3 +202,10 @@ Sub steste()
     rg.Style = "List Number"
 End Sub
 
+Function ParaIndentment(rg As Range)
+    With rg.ParagraphFormat
+        .LeftIndent = 0
+        .RightIndent = 0
+        .FirstLineIndent = 0
+    End With
+End Function
