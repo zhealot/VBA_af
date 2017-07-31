@@ -9,6 +9,8 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 
 Private Sub Workbook_Open()
-    'Application.Calculation = xlCalculationManual
-    'Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+    Application.ScreenUpdating = False
+    Call Init
 End Sub
+
