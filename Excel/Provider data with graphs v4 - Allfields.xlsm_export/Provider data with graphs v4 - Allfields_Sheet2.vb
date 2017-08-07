@@ -11,6 +11,12 @@ Public Sub cbProvider_Change()
     Call cbProvicderChange
 End Sub
 
+Private Sub cbSimilar_Change()
+    If TriggerSimilar Then
+        cbProvider.Value = cbSimilar.Value
+    End If
+End Sub
+
 Private Sub Worksheet_Activate()
     'Call Init
 End Sub

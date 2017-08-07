@@ -13,7 +13,9 @@ Public obFieldType(2) As New OBHandler  'container for option butoons in frmFiel
 Public obBroad(11) As New OBHandler     'container for option buttons in frmBroad
 Public obNarrow(30) As New OBHandler    'container for option butoons in frmNarrow, ###capacity is manually set
 'event trigger flag
-Public TriggerEvent As Boolean
+Public TriggerEvent As Boolean          'flasg to trigger option button event
+Public TriggerProvider As Boolean       'flag to trigger combo box Provider
+Public TriggerSimilar As Boolean        'flag to trigger combo box Similar
 
 'variables to keep selection of each frame/combo box
 Public sProvider As String
@@ -108,6 +110,8 @@ Function Init(all As Boolean)
 'initial frames and combobox
     On Error Resume Next
     TriggerEvent = True
+    TriggerProvider = True
+    TriggerSimilar = True
     Set wsData = ThisWorkbook.Sheets("Data")
     Set wsGraphs = ThisWorkbook.Sheets("EOTE graphs")
     Set wsDst = ThisWorkbook.Sheets("Destinations")
@@ -157,6 +161,9 @@ Function Init(all As Boolean)
         End If
         cb.Value = ""
         Call cbProvicderChange
+        Set cb = wsGraphs.OLEObjects("cbSimilar").Object
+        cb.Clear
+        cb.Value = ""
         FrameControlsEnable frmLevel, False
         FrameControlsEnable frmFieldType, False
         FrameControlsEnable frmBroad, False
@@ -200,6 +207,10 @@ Public Function FindRange(ws As Worksheet, inRg As Range, clm As String, txt As 
         RwEnd = rgTmp.Row
         Do While ws.Cells(RwEnd, clm).Value = txt
             RwEnd = RwEnd + 1
+            'check current row still within inRg
+            If RwEnd > inRg.Row + inRg.Rows.Count - 1 Then
+                Exit Do
+            End If
         Loop
         Set FindRange = ws.Range(ws.Cells(RwStart, inRg.Column), ws.Cells(RwEnd - 1, ws.UsedRange.Columns.Count))
     End If
@@ -221,6 +232,7 @@ Function FillTable()
     
     If sFieldType = "" Then
         Call ClearTable
+        
         Exit Function
     End If
 
@@ -718,6 +730,9 @@ Function cbProvicderChange()
                     TriggerEvent = True
                 Else
                     sLevel = ""
+                    TriggerSimilar = False
+                    cbSimilar.Value = ""
+                    TriggerSimilar = True
                 End If
                 Exit For
             End If
@@ -754,14 +769,16 @@ Function ListSimilarProviders()
     
     If sNarrow = "" Then
         sTxt = sBroad
-        clm = clmNarrowDst
+        clm = clmBroadDst
     Else
         sTxt = sNarrow
         clm = clmNarrowDst
     End If
     'find out similar providers by Broad field
     Set rgSearching = wsDst.Columns(clm).Find(sTxt, , xlValues, xlWhole)
+    TriggerSimilar = False
     cbSimilar.Clear
+    TriggerSimilar = True
     'find first occurance and keep the row number
     If Not rgSearching Is Nothing Then
         RwFirst = rgSearching.Row
@@ -775,14 +792,36 @@ Function ListSimilarProviders()
             If wsDst.Cells(rgSearching.Row, clmLevelDst).Value = sLevel _
                 And wsDst.Cells(rgSearching.Row, clmFieldTypeDst).Value = sFieldType _
                 And wsDst.Cells(rgSearching.Row, clmBroadDst).Value = sBroad Then
-                cbSimilar.AddItem wsDst.Cells(rgSearching.Row, clmProviderDst).Value
+                cbSimilar.AddItem wsDst.Cells(rgSearching.Row, clmProviderDst).Value, cbSimilar.ListCount
             End If
         End If
         Set rgSearching = wsDst.Columns(clm).FindNext(rgSearching)
-'        If rgSearching Is Nothing Then
-'            Exit Do
-'        End If
-        Debug.Print "Now: " & rgSearching.Row
     Loop While rgSearching.Row > RwFirst
+    SortCb cbSimilar
+    TriggerSimilar = False
     cbSimilar.Value = sProvider
+    TriggerSimilar = True
+End Function
+
+Public Function SortCb(cb As MSForms.ComboBox)
+'sort combo box items
+    If cb.ListCount < 2 Then Exit Function
+    Dim vList As Variant
+    Dim vTmp As Variant
+    vList = cb.List
+    Dim i As Long
+    Dim j As Long
+    For i = LBound(vList, 1) To UBound(vList, 1)
+        For j = i + 1 To UBound(vList, 1)
+            If vList(i, 0) > vList(j, 0) Then
+                vTmp = vList(i, 0)
+                vList(i, 0) = vList(j, 0)
+                vList(j, 0) = vTmp
+            End If
+        Next
+    Next
+    cb.Clear
+    For i = LBound(vList, 1) To UBound(vList, 1)
+        cb.AddItem vList(i, 0)
+    Next i
 End Function
