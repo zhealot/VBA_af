@@ -104,6 +104,18 @@ Private Sub btnOK_Click()
             doc.AttachedTemplate.BuildingBlockEntries(Blocks(i).Name).Insert rg, True
             'fix numbering issue: restart numbering of 1st paragraph then continue numbering for the rest
             rg.SetRange rgStart, doc.Content.End
+'            'break header/footer linkage to previous section, 07/08/2017
+'            For iSec = 1 To rg.Sections.Count
+'                If rg.Sections(iSec).Headers(wdHeaderFooterFirstPage).Exists Then
+'                    rg.Sections(iSec).Headers(wdHeaderFooterFirstPage).LinkToPrevious = False
+'                End If
+'                If rg.Sections(iSec).Headers(wdHeaderFooterPrimary).Exists Then
+'                    rg.Sections(iSec).Headers(wdHeaderFooterPrimary).LinkToPrevious = False
+'                End If
+'                If rg.Sections(iSec).Headers(wdHeaderFooterEvenPages).Exists Then
+'                    rg.Sections(iSec).Headers(wdHeaderFooterEvenPages).LinkToPrevious = False
+'                End If
+'            Next
             'work around to correct layout formatting and/or numbering in sections
             Dim tm5E
             tm5E = Timer
@@ -132,20 +144,9 @@ Private Sub btnOK_Click()
                         ParaIndentment rg.Tables(5).Range
                     End If
                 Case "5e"
+                    'restart list numbering
                     If rg.Tables.Count > 0 Then
-'                        'table 1
-'                        rg.Tables(1).Range.Style = "Normal"
-'                        rg.Tables(1).Range.ParagraphFormat.SpaceAfter = 0
-'                        rg.Tables(1).Cell(1, 1).Range.Style = "Note"
-'                        'table 3
-'                        rg.Tables(3).Range.Style = "Normal"
-'                        rg.Tables(3).Rows(1).Range.ParagraphFormat.SpaceAfter = 0
-'                        rg.Tables(3).Rows(2).Range.ParagraphFormat.SpaceAfter = 0
-'                        rg.Tables(3).Rows(3).Range.ParagraphFormat.SpaceAfter = 0
-'                        rg.Tables(3).Rows(4).Range.ParagraphFormat.SpaceAfter = 0
-'                        rg.Tables(3).Rows(3).Range.Font.Bold = True
-'                        rg.Tables(3).Rows(6).Range.Font.Bold = True
-                        'sort out numbering
+                        Dim cntTb As Integer
                         For cntTb = 1 To rg.Tables.Count
                             tm5Etb = Timer
                             DoEvents
@@ -170,11 +171,19 @@ Private Sub btnOK_Click()
                             Next cl
                             Debug.Print "5e tables: " & Timer - tm5Etb
                         Next cntTb
+                        'adjust table(3) paragraphs' SpaceAfter property
+                        If rg.Tables.Count >= 3 Then
+                            rg.Tables(3).Rows(1).Range.Paragraphs.SpaceAfter = 0
+                            rg.Tables(3).Rows(2).Range.Paragraphs.SpaceAfter = 0
+                            rg.Tables(3).Rows(3).Range.Paragraphs.SpaceAfter = 0
+                            rg.Tables(3).Rows(4).Range.Paragraphs.SpaceAfter = 0
+                        End If
                     End If
                     Debug.Print "5e: " & Timer - tm5E
                 Case "5f"
                     If rg.Tables.Count > 0 Then
                         ParaIndentment rg.Tables(1).Range
+                        rg.Tables(1).Range.Paragraphs.SpaceAfter = 0    '### 04/08/2017, 5f turns into 2 and half pages
                     End If
                 Case "5a", "7b"
                     tm7 = Timer
@@ -256,18 +265,18 @@ Private Sub btnOK_Click()
     
     '###TODO: insert logo image
     Dim hf As HeaderFooter
-    Dim SCT As Section
+    Dim sct As Section
     tmrTmp = Timer  'timer to measure insert logo
     For i = 1 To doc.Sections.Count
-        Set SCT = doc.Sections(i)
-        If SCT.Headers(wdHeaderFooterEvenPages).Exists Then
-            ReplacePicInHeader SCT.Headers(wdHeaderFooterEvenPages)
+        Set sct = doc.Sections(i)
+        If sct.Headers(wdHeaderFooterEvenPages).Exists Then
+            ReplacePicInHeader sct.Headers(wdHeaderFooterEvenPages)
         End If
-        If SCT.Headers(wdHeaderFooterFirstPage).Exists Then
-            ReplacePicInHeader SCT.Headers(wdHeaderFooterFirstPage)
+        If sct.Headers(wdHeaderFooterFirstPage).Exists Then
+            ReplacePicInHeader sct.Headers(wdHeaderFooterFirstPage)
         End If
-        If SCT.Headers(wdHeaderFooterPrimary).Exists Then
-            ReplacePicInHeader SCT.Headers(wdHeaderFooterPrimary)
+        If sct.Headers(wdHeaderFooterPrimary).Exists Then
+            ReplacePicInHeader sct.Headers(wdHeaderFooterPrimary)
         End If
     Next i
     Debug.Print "Insert logo: " & Timer - tmrTmp

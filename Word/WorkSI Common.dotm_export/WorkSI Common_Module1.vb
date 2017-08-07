@@ -84,6 +84,22 @@ Sub AddBuildingBlock(control As IRibbonControl)
         Set rg = doc.Content
         rg.Collapse wdCollapseEnd
         rg.InsertBreak wdSectionBreakNextPage
+        'delete header links
+        Dim sct As Section
+        For Each sct In doc.Sections
+            sct.Headers(wdHeaderFooterEvenPages).LinkToPrevious = False
+            sct.Headers(wdHeaderFooterFirstPage).LinkToPrevious = False
+            sct.Headers(wdHeaderFooterPrimary).LinkToPrevious = False
+            sct.Footers(wdHeaderFooterEvenPages).LinkToPrevious = False
+            sct.Footers(wdHeaderFooterFirstPage).LinkToPrevious = False
+            sct.Footers(wdHeaderFooterPrimary).LinkToPrevious = False
+        Next
+        '### delete header and foot to prevent 'infest' following pages. 08/08/2017
+        With doc.Sections.Last
+            .Headers(wdHeaderFooterPrimary).Range.Delete
+            .Headers(wdHeaderFooterFirstPage).Range.Delete
+            .Headers(wdHeaderFooterEvenPages).Range.Delete
+        End With
         'in order to keeep the original formatting, copy and paste to thisdocument before adding it to BB
         ThisDocument.Content.Delete
         Set rg = doc.Content
@@ -153,7 +169,7 @@ End Function
 
 'reaplace picture in header's contentcontrol
 Function ReplacePicInHeader(hf As HeaderFooter)
-    Dim SCT As Section
+    Dim sct As Section
     Dim CC As ContentControl
     If hf.Range.ShapeRange.Count > 0 Then
         For i = 1 To hf.Range.ShapeRange.Count
