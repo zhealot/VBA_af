@@ -7,6 +7,13 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+Private Sub btnReset_Click()
+'reset all selections and forms
+    Init True
+    Call ClearTable
+    Application.Calculate
+End Sub
+
 Public Sub cbProvider_Change()
     Call cbProvicderChange
 End Sub

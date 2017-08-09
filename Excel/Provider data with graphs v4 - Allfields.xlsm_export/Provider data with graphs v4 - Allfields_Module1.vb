@@ -42,10 +42,10 @@ Public Const clmNarrowNum = 8          '###column of narrow field code
 Public Const clmProvider = 9            'column of provider names
 
 'data table position
-Public Const ProviderBaseRw = 3        'first cell of provider data
-Public Const AllBaseRw = 13             'first cell of all provider data
+Public Const ProviderBaseRw = 58        'first cell of provider data
+Public Const AllBaseRw = 68             'first cell of all provider data
 Public Const BaseClm = 5
-Public Const ProviderRw = 2             'cell that keeps provider name in table
+Public Const ProviderRw = 57             'cell that keeps provider name in table
 Public Const ProviderClm = "D"
 
 'column in sheet Destinations
@@ -752,7 +752,7 @@ Function SetOBs(frm As MSForms.Frame, status As Boolean)
 End Function
 
 Private Sub Reset(ribbon As IRibbonControl)
-'rest all selections and forms
+'reset all selections and forms
     Init True
     Call ClearTable
     Application.Calculate
@@ -792,7 +792,14 @@ Function ListSimilarProviders()
             If wsDst.Cells(rgSearching.Row, clmLevelDst).Value = sLevel _
                 And wsDst.Cells(rgSearching.Row, clmFieldTypeDst).Value = sFieldType _
                 And wsDst.Cells(rgSearching.Row, clmBroadDst).Value = sBroad Then
-                cbSimilar.AddItem wsDst.Cells(rgSearching.Row, clmProviderDst).Value, cbSimilar.ListCount
+                'check has values other then 'Numbers'
+                Dim cl As Range
+                For Each cl In wsDst.Range(wsDst.Cells(rgSearching.Row, clmEmpDst), wsDst.Cells(rgSearching.Row, "BD"))
+                    If cl.Value <> "S" And cl.Value <> "" Then
+                        cbSimilar.AddItem wsDst.Cells(rgSearching.Row, clmProviderDst).Value, cbSimilar.ListCount
+                        Exit For
+                    End If
+                Next cl
             End If
         End If
         Set rgSearching = wsDst.Columns(clm).FindNext(rgSearching)
