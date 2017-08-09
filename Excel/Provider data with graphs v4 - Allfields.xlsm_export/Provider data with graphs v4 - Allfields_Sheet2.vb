@@ -7,30 +7,3 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-Private Sub btnReset_Click()
-'reset all selections and forms
-    Init True
-    Call ClearTable
-    Application.Calculate
-End Sub
-
-Public Sub cbProvider_Change()
-    Call cbProvicderChange
-End Sub
-
-Private Sub cbSimilar_Change()
-    If TriggerSimilar Then
-        cbProvider.Value = cbSimilar.Value
-    End If
-End Sub
-
-Private Sub Worksheet_Activate()
-    'Call Init
-End Sub
-
-Private Sub Worksheet_SelectionChange(ByVal Target As Range)
-    If cbProvider.ListCount = 0 Or obFieldType(0).OBHandler Is Nothing Then
-        Call Init(False)
-    End If
-End Sub
-

@@ -11,7 +11,8 @@ Private Sub Workbook_Open()
     On Error Resume Next
     Application.Calculation = xlCalculationManual
     Application.ScreenUpdating = False
-    Call Init(True)
+    'Call Init(True)
+    frmMain.Show
 End Sub
 
 

@@ -44,9 +44,9 @@ Public Const clmProvider = 9            'column of provider names
 'data table position
 Public Const ProviderBaseRw = 58        'first cell of provider data
 Public Const AllBaseRw = 68             'first cell of all provider data
-Public Const BaseClm = 5
+Public Const BaseClm = 2
 Public Const ProviderRw = 57             'cell that keeps provider name in table
-Public Const ProviderClm = "D"
+Public Const ProviderClm = "A"
 
 'column in sheet Destinations
 Public Const clmProviderDst = "E"
@@ -109,6 +109,8 @@ Public cbSimilar As MSForms.ComboBox
 Function Init(all As Boolean)
 'initial frames and combobox
     On Error Resume Next
+    frmMain.Show
+    Call ClearTable
     TriggerEvent = True
     TriggerProvider = True
     TriggerSimilar = True
@@ -120,24 +122,62 @@ Function Init(all As Boolean)
     Set rgProviderDstAll = wsDst.Range(wsDst.Cells(3, clmProviderDst), wsDst.Cells(587, wsDst.UsedRange.Columns.Count))
     Set rgProviderErnAll = wsErn.Range(wsErn.Cells(3, clmProviderErn), wsErn.Cells(1730, wsErn.UsedRange.Columns.Count))
     'hook up frames
-    Set frmLevel = wsGraphs.OLEObjects("frmLevel").Object
-    Set frmFieldType = wsGraphs.OLEObjects("frmFieldType").Object
-    Set frmBroad = wsGraphs.OLEObjects("frmBroad").Object
-    Set frmNarrow = wsGraphs.OLEObjects("frmNarrow").Object
-    Set cbSimilar = wsGraphs.OLEObjects("cbSimilar").Object
+    Set frmLevel = frmMain.frmLevel     'wsGraphs.OLEObjects("frmLevel").Object
+    Set frmFieldType = frmMain.frmFieldType     'wsGraphs.OLEObjects("frmFieldType").Object
+    Set frmBroad = frmMain.frmBroad     'wsGraphs.OLEObjects("frmBroad").Object
+    Set frmNarrow = frmMain.frmNarrow       'wsGraphs.OLEObjects("frmNarrow").Object
+    Set cbSimilar = frmMain.cbSimilar   'wsGraphs.OLEObjects("cbSimilar").Object
     
-    'add option buttons to event handler array
-    Dim opTmp As MSForms.OptionButton
-    For i = 0 To UBound(obLevel)
-        Set opTmp = frmLevel.Controls(i)
-        Set obLevel(i).OBHandler = opTmp
-        obLevel(i).sFrame = "frmLevel"
-    Next i
-    For i = 0 To UBound(obFieldType)
-        Set opTmp = frmFieldType.Controls(i)
-        Set obFieldType(i).OBHandler = opTmp
-        obFieldType(i).sFrame = "frmFieldType"
-    Next i
+    Dim rg As Range
+    Dim RwLast As Long
+    Dim cb As MSForms.ComboBox
+    Dim ob As MSForms.OptionButton
+    
+    'populate frame Levels
+    frmLevel.Controls.Clear
+    RwLast = wsData.Cells(wsData.Rows.Count, clmLevel).End(xlUp).Row
+    Set rg = wsData.Range(wsData.Cells(1, clmLevel), wsData.Cells(RwLast, clmLevel))
+    For Each cl In rg
+        Set ob = frmLevel.Controls.Add("Forms.OptionButton.1")
+        ob.Top = (frmLevel.Controls.Count) * PosTop
+        ob.Left = PosLeft
+        ob.Height = OBHeight
+        ob.Width = OBWidth
+        ob.Caption = cl.Value
+        ob.Name = cl.Value
+        ob.Font.Size = OBFontSize
+        ob.Font.Bold = OBFontBold
+        Set obLevel(cl.Row - 1).OBHandler = ob
+        obLevel(cl.Row - 1).obCaption = ob.Caption
+        obLevel(cl.Row - 1).sFrame = "frmLevel"
+        'disable item first
+        ob.Enabled = False
+        ob.Value = False
+    Next cl
+    frmLevel.Height = rg.Cells.Count * OBHeight + 30
+    
+    'populate frame FieldType
+    frmFieldType.Controls.Clear
+    RwLast = wsData.Cells(wsData.Rows.Count, clmFieldType).End(xlUp).Row
+    Set rg = wsData.Range(wsData.Cells(1, clmFieldType), wsData.Cells(RwLast, clmFieldType))
+    For Each cl In rg
+        Set ob = frmFieldType.Controls.Add("Forms.OptionButton.1")
+        ob.Top = (frmFieldType.Controls.Count) * PosTop
+        ob.Left = PosLeft
+        ob.Height = OBHeight
+        ob.Width = OBWidth
+        ob.Caption = cl.Value
+        ob.Name = cl.Value
+        ob.Font.Size = OBFontSize
+        ob.Font.Bold = OBFontBold
+        Set obFieldType(cl.Row - 1).OBHandler = ob
+        obFieldType(cl.Row - 1).obCaption = ob.Caption
+        obFieldType(cl.Row - 1).sFrame = "frmFieldType"
+        'disable item first
+        ob.Enabled = False
+        ob.Value = False
+    Next cl
+    frmFieldType.Height = rg.Cells.Count * OBHeight + 30
     
     'binding complete, check whether need to initialize all
     If all Then
@@ -146,11 +186,8 @@ Function Init(all As Boolean)
         sFieldType = ""
         sBroad = ""
         sNarrow = ""
-        Dim rg As Range
-        Dim RwLast As Long
-        Dim cb As MSForms.ComboBox
         'populate Provider combo box
-        Set cb = wsGraphs.OLEObjects("cbProvider").Object
+        Set cb = frmMain.cbProvider       'wsGraphs.OLEObjects("cbProvider").Object
         If cb.ListCount = 0 Then
             cb.Clear
             RwLast = wsData.Cells(wsData.Rows.Count, clmProvider).End(xlUp).Row
@@ -161,7 +198,7 @@ Function Init(all As Boolean)
         End If
         cb.Value = ""
         Call cbProvicderChange
-        Set cb = wsGraphs.OLEObjects("cbSimilar").Object
+        Set cb = frmMain.cbSimilar       'wsGraphs.OLEObjects("cbSimilar").Object
         cb.Clear
         cb.Value = ""
         FrameControlsEnable frmLevel, False
@@ -182,7 +219,7 @@ Function FrameControlsEnable(frm As MSForms.Frame, enable As Boolean)
     TriggerEvent = False
     For Each ctrl In frm.Controls
         ctrl.Enabled = enable
-        ctrl.Visible = enable
+        'ctrl.Visible = enable
         ctrl.Value = False
     Next
     TriggerEvent = True
@@ -480,6 +517,9 @@ Function FieldTypeClick(ob As MSForms.OptionButton)
             Set rgFieldTypeErn = FindRange(wsErn, rgLevelErn, clmFieldTypeErn, sFieldType)
             Set rgFieldTypeDstAll = FindRange(wsDst, rgLevelDstAll, clmFieldTypeDst, sFieldType)
             Set rgFieldTypeErnAll = FindRange(wsErn, rgLevelErnAll, clmFieldTypeErn, sFieldType)
+            TriggerSimilar = False
+            frmMain.cbSimilar.Clear
+            TriggerSimilar = True
             FillTable
         Case "Broad", "Narrow"
             If ob.Caption = "Broad" Then
@@ -499,7 +539,7 @@ Function FieldTypeClick(ob As MSForms.OptionButton)
             Set rgFieldTypeErnAll = rgLevelErnAll
             
             'generate controls for frame Broad field of study
-            Set frmBroad = wsGraphs.OLEObjects("frmBroad").Object
+            Set frmBroad = frmMain.frmBroad 'wsGraphs.OLEObjects("frmBroad").Object
             'frmBroad.Controls.Clear
             If frmBroad.Controls.Count = 0 Then
                 RwLast = wsData.Cells(wsData.Rows.Count, clmBroad).End(xlUp).Row
@@ -663,7 +703,7 @@ Function cbProvicderChange()
     On Error Resume Next
     'keep selection and initial option buttons on all frames
     Dim cbProvider As MSForms.ComboBox
-    Set cbProvider = wsGraphs.OLEObjects("cbProvider").Object
+    Set cbProvider = frmMain.cbProvider     'wsGraphs.OLEObjects("cbProvider").Object
     sProvider = cbProvider.Value
     wsGraphs.Cells(ProviderRw, ProviderClm).Value = sProvider
     Application.Calculate   'refresh
@@ -695,9 +735,6 @@ Function cbProvicderChange()
             ob.Caption = cl.Value
             ob.Font.Size = OBFontSize
             ob.Font.Bold = OBFontBold
-'            Set obLevel(cl.Row - 1).OBHandler = ob
-'            obLevel(cl.Row - 1).sFrame = "frmLevel"
-'            obLevel(cl.Row - 1).obCaption = ob.Caption
         Next cl
     End If
     'validte items on frame levle
@@ -751,11 +788,8 @@ Function SetOBs(frm As MSForms.Frame, status As Boolean)
     Next ctr
 End Function
 
-Private Sub Reset(ribbon As IRibbonControl)
-'reset all selections and forms
-    Init True
-    Call ClearTable
-    Application.Calculate
+Private Sub ShowForm(ribbon As IRibbonControl)
+    frmMain.Show
 End Sub
 
 Function ListSimilarProviders()
