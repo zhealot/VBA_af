@@ -12,7 +12,8 @@ Private Sub Workbook_Open()
     Application.Calculation = xlCalculationManual
     Application.ScreenUpdating = False
     'Call Init(True)
-    frmMain.Show
+    'frmMain.Show
+    ThisWorkbook.Sheets(1).Activate
 End Sub
 
 

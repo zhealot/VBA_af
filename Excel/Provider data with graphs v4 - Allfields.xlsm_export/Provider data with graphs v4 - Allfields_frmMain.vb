@@ -28,6 +28,10 @@ Private Sub CommandButton1_Click()
     Call Init(True)
 End Sub
 
+Private Sub CommandButton2_Click()
+    Me.Hide
+End Sub
+
 Private Sub UserForm_Initialize()
     Call Init(True)
 End Sub

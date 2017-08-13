@@ -18,14 +18,28 @@ Public Sub cbProvider_Change()
     Call cbProvicderChange
 End Sub
 
-Private Sub cbSimilar_Change()
-    If TriggerSimilar Then
-        cbProvider.Value = cbSimilar.Value
-    End If
+Private Sub CommandButton1_Click()
+    frmMain.Hide
+    ThisWorkbook.Sheets(1).Activate
 End Sub
 
-Private Sub Worksheet_Activate()
-    'Call Init
+Private Sub CommandButton2_Click()
+    frmMain.Hide
+    ThisWorkbook.Sheets(2).Activate
+End Sub
+
+Private Sub CommandButton3_Click()
+     ActiveWindow.ScrollRow = 57
+     ActiveWindow.ScrollColumn = 1
+End Sub
+
+Private Sub CommandButton4_Click()
+     ActiveWindow.ScrollRow = 1
+     ActiveWindow.ScrollColumn = 1
+End Sub
+
+Private Sub showForm_Click()
+    frmMain.Show
 End Sub
 
 

@@ -109,8 +109,6 @@ Public cbSimilar As MSForms.ComboBox
 Function Init(all As Boolean)
 'initial frames and combobox
     On Error Resume Next
-    frmMain.Show
-    Call ClearTable
     TriggerEvent = True
     TriggerProvider = True
     TriggerSimilar = True
@@ -128,6 +126,9 @@ Function Init(all As Boolean)
     Set frmNarrow = frmMain.frmNarrow       'wsGraphs.OLEObjects("frmNarrow").Object
     Set cbSimilar = frmMain.cbSimilar   'wsGraphs.OLEObjects("cbSimilar").Object
     
+    wsGraphs.Activate
+    Call ClearTable
+    frmMain.Show
     Dim rg As Range
     Dim RwLast As Long
     Dim cb As MSForms.ComboBox
@@ -337,7 +338,9 @@ Function FillTable()
         ExtractCell wsErn, clSrc, wsGraphs, clTbl, 9, 9
     End If
     Application.Calculate
+    ThisWorkbook.RefreshAll
     Application.ScreenUpdating = True
+    Calculate
 End Function
 
 Function ExtractCell(wsSrc As Worksheet, clSrc As Range, wsDst As Worksheet, clDst As Range, SrcCellNum As Integer, DstCellNum As Integer)
@@ -788,7 +791,7 @@ Function SetOBs(frm As MSForms.Frame, status As Boolean)
     Next ctr
 End Function
 
-Private Sub ShowForm(ribbon As IRibbonControl)
+Private Sub showForm(ribbon As IRibbonControl)
     frmMain.Show
 End Sub
 
