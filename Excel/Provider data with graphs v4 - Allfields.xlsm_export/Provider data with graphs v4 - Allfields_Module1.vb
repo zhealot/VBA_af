@@ -113,7 +113,7 @@ Function Init(all As Boolean)
     TriggerProvider = True
     TriggerSimilar = True
     Set wsData = ThisWorkbook.Sheets("Data")
-    Set wsGraphs = ThisWorkbook.Sheets("EOTE graphs")
+    Set wsGraphs = ThisWorkbook.Sheets("Graphs and Tables")
     Set wsDst = ThisWorkbook.Sheets("Destinations")
     Set wsErn = ThisWorkbook.Sheets("Earnings")
     'setup 'All provider' range
@@ -167,12 +167,12 @@ Function Init(all As Boolean)
         ob.Left = PosLeft
         ob.Height = OBHeight
         ob.Width = OBWidth
-        ob.Caption = cl.Value
+        ob.Caption = cl.Value & " field of study" '###15/08/2017
         ob.Name = cl.Value
         ob.Font.Size = OBFontSize
         ob.Font.Bold = OBFontBold
         Set obFieldType(cl.Row - 1).OBHandler = ob
-        obFieldType(cl.Row - 1).obCaption = ob.Caption
+        obFieldType(cl.Row - 1).obCaption = ob.Name 'ob.Caption ###15/08/2017
         obFieldType(cl.Row - 1).sFrame = "frmFieldType"
         'disable item first
         ob.Enabled = False
@@ -419,7 +419,7 @@ Function GetFrameValues()
             sFieldType = ""
             For Each ctr In frmFieldType.Controls
                 If ctr.Value And ctr.Enabled Then
-                    sFieldType = ctr.Caption
+                    sFieldType = ctr.Name   'ctr.Caption, ###15/08/2017
                     Exit For
                 End If
             Next ctr
@@ -480,7 +480,8 @@ Function LevelClick(ob As MSForms.OptionButton)
             ob.Left = PosLeft
             ob.Height = OBHeight
             ob.Width = OBWidth
-            ob.Caption = cl.Value
+            ob.Name = cl.Value  '###15/08/2017
+            ob.Caption = cl.Value & " field of study"   '###15/08/2017
             ob.Font.Size = OBFontSize
             ob.Font.Bold = OBFontBold
         Next cl
@@ -490,7 +491,8 @@ Function LevelClick(ob As MSForms.OptionButton)
         Dim opTmp As MSForms.OptionButton
         Set opTmp = Nothing
         For Each ctr In frmFieldType.Controls
-            If ctr.Caption = sFieldType Then
+            'If ctr.Caption = sFieldType Then   ###15/08/2017
+            If ctr.Name = sFieldType Then
                 TriggerEvent = False
                 Set opTmp = ctr
                 opTmp.Value = True
@@ -509,9 +511,9 @@ End Function
 
 Function FieldTypeClick(ob As MSForms.OptionButton)
     On Error Resume Next
-    sFieldType = ob.Caption
+    sFieldType = ob.Name 'ob.Caption ###15/08/2017
     'setup broad and narrow frames
-    Select Case ob.Caption
+    Select Case ob.Name    'ob.Caption  ###15/08/2017
         Case "All"
             FrameControlsEnable frmBroad, False
             FrameControlsEnable frmNarrow, False
@@ -525,14 +527,16 @@ Function FieldTypeClick(ob As MSForms.OptionButton)
             TriggerSimilar = True
             FillTable
         Case "Broad", "Narrow"
-            If ob.Caption = "Broad" Then
+            'If ob.Caption = "Broad" Then   ###15/08/2017
+            If ob.Name = "Broad" Then
                 FrameControlsEnable frmBroad, True
                 FrameControlsEnable frmNarrow, False
             Else
                 FrameControlsEnable frmBroad, True
                 FrameControlsEnable frmNarrow, True
             End If
-            If ob.Caption = "Broad" Then
+            'If ob.Caption = "Broad" Then   ###15/08/2017
+            If ob.Name = "Braod" Then
                 frmNarrow.Controls.Clear
             End If
             'use same range as level
