@@ -134,6 +134,8 @@ Function Init(all As Boolean)
     Dim cb As MSForms.ComboBox
     Dim ob As MSForms.OptionButton
     
+    CancelFilter
+    
     'populate frame Levels
     frmLevel.Controls.Clear
     RwLast = wsData.Cells(wsData.Rows.Count, clmLevel).End(xlUp).Row
@@ -290,7 +292,7 @@ Function FillTable()
         Set baseClDst = FindRange(wsDst, rgBroadDst, clmFieldTypeDst, "Broad")
         Set baseClDstAll = FindRange(wsDst, rgBroadDstAll, clmFieldTypeDst, "Broad")
         Set baseClErn = FindRange(wsErn, rgBroadErn, clmFieldTypeErn, "Broad")
-        Set baseClErn = FindRange(wsErn, rgBroadErn, clmBroadErn, "Median")
+        Set baseClErn = FindRange(wsErn, rgBroadErn, clmPercentile, "Median")
         Set baseClErnAll = FindRange(wsErn, rgBroadErnAll, clmFieldTypeErn, "Broad")
         Set baseClErnAll = FindRange(wsErn, rgBroadErnAll, clmBroadErn, "Median")
     Case "Narrow"
@@ -301,7 +303,7 @@ Function FillTable()
         Set baseClDst = FindRange(wsDst, rgNarrowDst, clmNarrowDst, sNarrow)
         Set baseClDstAll = FindRange(wsDst, rgNarrowDstAll, clmNarrowDst, sNarrow)
         Set baseClErn = FindRange(wsErn, rgNarrowErn, clmNarrowErn, sNarrow)
-        Set baseClErn = FindRange(wsErn, rgNarrowErn, clmNarrowErn, "Median")
+        Set baseClErn = FindRange(wsErn, rgNarrowErn, clmPercentile, "Median")
         Set baseClErnAll = FindRange(wsErn, rgNarrowErnAll, clmNarrowErn, sNarrow)
         Set baseClErnAll = FindRange(wsErn, rgNarrowErnAll, clmNarrowErn, "Median")
     End Select
@@ -465,6 +467,7 @@ Function LevelClick(ob As MSForms.OptionButton)
     On Error Resume Next
     sLevel = ob.Caption
     'setup relevant ranges
+    CancelFilter
     Set rgLevelDst = FindRange(wsDst, rgProviderDst, clmLevelDst, sLevel)
     Set rgLevelErn = FindRange(wsErn, rgProviderErn, clmLevelErn, sLevel)
     Set rgLevelDstAll = FindRange(wsDst, rgProviderDstAll, clmLevelDst, sLevel)
@@ -512,6 +515,7 @@ End Function
 Function FieldTypeClick(ob As MSForms.OptionButton)
     On Error Resume Next
     sFieldType = ob.Name 'ob.Caption ###15/08/2017
+    CancelFilter
     'setup broad and narrow frames
     Select Case ob.Name    'ob.Caption  ###15/08/2017
         Case "All"
@@ -614,6 +618,7 @@ End Function
 Function BroadClick(ob As MSForms.OptionButton)
     On Error Resume Next
     sBroad = ob.Caption
+    CancelFilter
     'setup relevant ranges
     'within a certain level range, the broad field name leads to broad field rows only
     'so just search broad field name in the level range will get the correct rows
@@ -698,6 +703,7 @@ End Function
 Function NarrowClick(ob As MSForms.OptionButton)
     On Error Resume Next
     sNarrow = ob.Caption
+    CancelFilter
     Set rgNarrowDst = FindRange(wsDst, rgBroadDst, clmNarrowDst, sNarrow)
     Set rgNarrowErn = FindRange(wsErn, rgBroadErn, clmNarrowErn, sNarrow)
     Set rgNarrowDstAll = FindRange(wsDst, rgBroadDstAll, clmNarrowDst, sNarrow)
@@ -708,6 +714,7 @@ End Function
 
 Function cbProvicderChange()
     On Error Resume Next
+    CancelFilter
     'keep selection and initial option buttons on all frames
     Dim cbProvider As MSForms.ComboBox
     Set cbProvider = frmMain.cbProvider     'wsGraphs.OLEObjects("cbProvider").Object
@@ -872,4 +879,14 @@ Public Function SortCb(cb As MSForms.ComboBox)
     For i = LBound(vList, 1) To UBound(vList, 1)
         cb.AddItem vList(i, 0)
     Next i
+End Function
+
+Public Function CancelFilter()
+'show all data in sheet destinations and ernings
+    If wsDst.AutoFilterMode Then
+        wsDst.AutoFilterMode = False
+    End If
+    If wsErn.AutoFilterMode Then
+        wsErn.AutoFilterMode = False
+    End If
 End Function
