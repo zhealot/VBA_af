@@ -294,7 +294,7 @@ Function FillTable()
         Set baseClErn = FindRange(wsErn, rgBroadErn, clmFieldTypeErn, "Broad")
         Set baseClErn = FindRange(wsErn, rgBroadErn, clmPercentile, "Median")
         Set baseClErnAll = FindRange(wsErn, rgBroadErnAll, clmFieldTypeErn, "Broad")
-        Set baseClErnAll = FindRange(wsErn, rgBroadErnAll, clmBroadErn, "Median")
+        Set baseClErnAll = FindRange(wsErn, rgBroadErnAll, clmPercentile, "Median")
     Case "Narrow"
         If sNarrow = "" Then
             Call ClearTable
@@ -305,7 +305,7 @@ Function FillTable()
         Set baseClErn = FindRange(wsErn, rgNarrowErn, clmNarrowErn, sNarrow)
         Set baseClErn = FindRange(wsErn, rgNarrowErn, clmPercentile, "Median")
         Set baseClErnAll = FindRange(wsErn, rgNarrowErnAll, clmNarrowErn, sNarrow)
-        Set baseClErnAll = FindRange(wsErn, rgNarrowErnAll, clmNarrowErn, "Median")
+        Set baseClErnAll = FindRange(wsErn, rgNarrowErnAll, clmPercentile, "Median")
     End Select
     'get one row only for Destinations data, then fill the Provider table
     If baseClDst.Rows.Count = 1 Then
