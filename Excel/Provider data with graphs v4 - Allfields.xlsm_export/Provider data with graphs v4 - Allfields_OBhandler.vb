@@ -14,7 +14,13 @@ Public obCaption As String  'option button caption
 Public sFrame As String     'indicate which frame the option button comes from
 
 Private Sub OBHandler_Click()
+    Calculate
     If Not TriggerEvent Then Exit Sub
+'    sProvider = wsGraphs.Cells(56, 10).Value
+'    sLevel = GetValue(frmLevel)
+'    sFieldType = GetValue(frmFieldType)
+'    sBroad = GetValue(frmBroad)
+'    sNarrow = GetValue(frmNarrow)
     Select Case sFrame
     'click in Qualification Level
     Case "frmLevel"
@@ -30,5 +36,6 @@ Private Sub OBHandler_Click()
         Call NarrowClick(OBHandler)
     Case Else
     End Select
+    Calculate
 End Sub
 

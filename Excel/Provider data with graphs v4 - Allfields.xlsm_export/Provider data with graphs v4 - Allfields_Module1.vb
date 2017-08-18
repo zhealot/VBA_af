@@ -116,6 +116,10 @@ Function Init(all As Boolean)
     Set wsGraphs = ThisWorkbook.Sheets("Graphs and Tables")
     Set wsDst = ThisWorkbook.Sheets("Destinations")
     Set wsErn = ThisWorkbook.Sheets("Earnings")
+    'reset text cells
+    wsGraphs.Cells(56, 2).Value = ""
+    wsGraphs.Cells(56, 3).Value = ""
+    
     'setup 'All provider' range
     Set rgProviderDstAll = wsDst.Range(wsDst.Cells(3, clmProviderDst), wsDst.Cells(587, wsDst.UsedRange.Columns.Count))
     Set rgProviderErnAll = wsErn.Range(wsErn.Cells(3, clmProviderErn), wsErn.Cells(1730, wsErn.UsedRange.Columns.Count))
@@ -214,6 +218,451 @@ Function Init(all As Boolean)
     Application.Calculate
 End Function
 
+Function LevelClick(ob As MSForms.OptionButton)
+    On Error Resume Next
+    sLevel = ob.Caption
+    'write to cell to be used by chart title
+    wsGraphs.Cells(56, 2).Value = ob.Caption
+    'setup relevant ranges
+    CancelFilter
+    Set rgLevelDst = FindRange(wsDst, rgProviderDst, clmLevelDst, sLevel)
+    Set rgLevelErn = FindRange(wsErn, rgProviderErn, clmLevelErn, sLevel)
+    Set rgLevelDstAll = FindRange(wsDst, rgProviderDstAll, clmLevelDst, sLevel)
+    Set rgLevelErnAll = FindRange(wsErn, rgProviderErnAll, clmLevelErn, sLevel)
+    
+    'generate option buttons for frame field type level
+    If frmFieldType.Controls.Count = 0 Then
+        RwLast = wsData.Cells(wsData.Rows.Count, clmFieldType).End(xlUp).Row
+        Set rg = wsData.Range(wsData.Cells(1, clmFieldType), wsData.Cells(RwLast, clmFieldType))
+        For Each cl In rg
+            Set ob = frmFieldType.Controls.Add("Forms.OptionButton.1")
+            ob.Top = (frmFieldType.Controls.Count) * PosTop
+            ob.Left = PosLeft
+            ob.Height = OBHeight
+            ob.Width = OBWidth
+            ob.Name = cl.Value  '###15/08/2017
+            ob.Caption = cl.Value & " field of study"   '###15/08/2017
+            ob.Font.Size = OBFontSize
+            ob.Font.Bold = OBFontBold
+        Next cl
+    End If
+    'heritage status from previous stage
+    If sFieldType <> "" Then
+        Dim opTmp As MSForms.OptionButton
+        Set opTmp = Nothing
+        For Each ctr In frmFieldType.Controls
+            'If ctr.Caption = sFieldType Then   ###15/08/2017
+            If ctr.Name = sFieldType Then
+                TriggerEvent = False
+                Set opTmp = ctr
+                opTmp.Value = True
+                TriggerEvent = True
+                Exit For
+            End If
+        Next
+        '### when setting its value, it triggers the OBHandler event, so below call is not necessary
+        Call FieldTypeClick(opTmp)
+    Else
+        'try fill table, actually will clear the table
+        FillTable
+    End If
+    
+End Function
+
+Function FieldTypeClick(ob As MSForms.OptionButton)
+    On Error Resume Next
+    sFieldType = ob.Name 'ob.Caption ###15/08/2017
+    wsGraphs.Cells(56, 3).Value = ob.Caption
+    CancelFilter
+    'setup broad and narrow frames
+    Select Case ob.Name    'ob.Caption  ###15/08/2017
+        Case "All"
+            FrameControlsEnable frmBroad, False
+            FrameControlsEnable frmNarrow, False
+            'setup relevant ranges
+            Set rgFieldTypeDst = FindRange(wsDst, rgLevelDst, clmFieldTypeDst, sFieldType)
+            Set rgFieldTypeErn = FindRange(wsErn, rgLevelErn, clmFieldTypeErn, sFieldType)
+            Set rgFieldTypeDstAll = FindRange(wsDst, rgLevelDstAll, clmFieldTypeDst, sFieldType)
+            Set rgFieldTypeErnAll = FindRange(wsErn, rgLevelErnAll, clmFieldTypeErn, sFieldType)
+            TriggerSimilar = False
+            frmMain.cbSimilar.Clear
+            TriggerSimilar = True
+            FillTable
+            ListSimilarProviders
+        Case "Broad", "Narrow"
+            'If ob.Caption = "Broad" Then   ###15/08/2017
+            If ob.Name = "Broad" Then
+                FrameControlsEnable frmBroad, True
+                frmNarrow.Controls.Clear
+                FrameControlsEnable frmNarrow, False
+            Else
+                FrameControlsEnable frmBroad, True
+                FrameControlsEnable frmNarrow, True
+            End If
+            'If ob.Caption = "Broad" Then   ###15/08/2017
+            If ob.Name = "Braod" Then
+                frmNarrow.Controls.Clear
+            End If
+            'use same range as level
+            Set rgFieldTypeDst = rgLevelDst
+            Set rgFieldTypeErn = rgLevelErn
+            Set rgFieldTypeDstAll = rgLevelDstAll
+            Set rgFieldTypeErnAll = rgLevelErnAll
+            
+            'generate controls for frame Broad field of study
+            Set frmBroad = frmMain.frmBroad 'wsGraphs.OLEObjects("frmBroad").Object
+            'frmBroad.Controls.Clear
+            If frmBroad.Controls.Count = 0 Then
+                RwLast = wsData.Cells(wsData.Rows.Count, clmBroad).End(xlUp).Row
+                Set rg = wsData.Range(wsData.Cells(1, clmBroad), wsData.Cells(RwLast, clmBroad))
+                For Each cl In rg
+                    Set ob = frmBroad.Controls.Add("Forms.OptionButton.1")
+                    ob.Top = (frmBroad.Controls.Count) * PosTop
+                    ob.Left = PosLeft
+                    ob.Height = OBHeight
+                    ob.Width = OBWidth
+                    ob.Caption = cl.Value
+                    ob.Name = cl.Value  '### 18/08/2017
+                    ob.Font.Size = OBFontSize
+                    ob.Font.Bold = OBFontBold
+                    Set obBroad(cl.Row - 1).OBHandler = ob
+                    obBroad(cl.Row - 1).obCaption = ob.Caption
+                    obBroad(cl.Row - 1).sFrame = "frmBroad"
+                    'disable item first
+                    ob.Enabled = False
+                    ob.Value = False
+                Next cl
+            End If
+            'validte items in frame Broad
+            SetOBs frmBroad, False  'disabled all first, then enable the ones in range
+            For iRw = 0 To rgFieldTypeDst.Rows.Count - 1
+                If wsDst.Cells(rgFieldTypeDst.Row + iRw, clmFieldTypeDst).Value = "Broad" Then
+                    For i = 0 To frmBroad.Controls.Count - 1
+                        If frmBroad.Controls(i).Caption = wsDst.Cells(rgFieldTypeDst.Row + iRw, clmBroadDst).Value Then
+                            Dim oppp As MSForms.OptionButton
+                            Set oppp = frmBroad.Controls(i)
+                            oppp.Enabled = True
+                            Set obBroad(i).OBHandler = oppp
+                            obBroad(i).sFrame = "frmBroad"
+                            Exit For
+                        End If
+                    Next i
+                End If
+            Next iRw
+            'select the option button that has been selected from previous stage
+            If sBroad <> "" Then
+                Dim obtmp As MSForms.OptionButton
+                Set obtmp = Nothing
+                For Each ctr In frmBroad.Controls
+                    If ctr.Caption = sBroad And ctr.Enabled Then
+                        TriggerEvent = False
+                        Set obtmp = ctr
+                        obtmp.Value = True
+                        TriggerEvent = True
+                        Exit For
+                    End If
+                Next ctr
+                'no Broad item is selected
+                If obtmp Is Nothing Then
+                    sNarrow = ""
+                    frmNarrow.Controls.Clear
+                Else
+                    Call BroadClick(obtmp)
+                End If
+            Else
+                FillTable
+            End If
+        Case Else
+    End Select
+End Function
+
+Function BroadClick(ob As MSForms.OptionButton)
+    On Error Resume Next
+    sBroad = ob.Caption
+    'write to cell to be used by chart title
+    wsGraphs.Cells(56, 3).Value = ob.Caption
+    CancelFilter
+    'setup relevant ranges
+    'within a certain level range, the broad field name leads to broad field rows only
+    'so just search broad field name in the level range will get the correct rows
+    'below rgFieldTypeDst = rgLevelDst, rgFieldTypeErn = rgFieldTypeErn
+    Set rgBroadDst = FindRange(wsDst, rgFieldTypeDst, clmBroadDst, sBroad)
+    Set rgBroadErn = FindRange(wsErn, rgFieldTypeErn, clmBroadErn, sBroad)
+    Set rgBroadDstAll = FindRange(wsDst, rgFieldTypeDstAll, clmBroadDst, sBroad)
+    Set rgBroadErnAll = FindRange(wsErn, rgFieldTypeErnAll, clmBroadErn, sBroad)
+            
+    'populate Narrow fields
+    If sFieldType = "Narrow" Then
+        FrameControlsEnable frmNarrow, True
+        frmNarrow.Controls.Clear
+        If frmNarrow.Controls.Count = 0 Then
+            Set wsData = ThisWorkbook.Sheets("Data")
+            'set range based on button clicked in frmBroad
+            Set rg = wsData.Columns(clmBroadAll).Find(Replace(Replace(ob.Caption, " ", ""), ",", ""), LookIn:=xlValues)
+            If Not rg Is Nothing Then
+                'define rg to next row and next column
+                Set rg = rg.Offset(1, 1)
+                Set cl = rg
+                'search for next empty cell
+                Do While Len(cl.Value) <> 0
+                    Set cl = cl.Offset(1, 0)
+                Loop
+                'redefine rg
+                Set rg = wsData.Range(rg, cl.Offset(-1, 0))
+            End If
+            Set cl = Nothing
+            'populate option buttons for narrow field study
+            For i = 1 To rg.Cells.Count
+                Set ob = frmNarrow.Controls.Add("Forms.OptionButton.1")
+                ob.Top = frmNarrow.Controls.Count * PosTop
+                ob.Left = PosLeft
+                ob.Height = OBHeight
+                ob.Width = OBWidth + 50
+                ob.Caption = rg.Cells(i).Value
+                ob.Name = ob.Caption    '### 18/08/2017
+                ob.Font.Size = OBFontSize
+                ob.Font.Bold = OBFontBold
+                Set obNarrow(i).OBHandler = ob
+                obNarrow(i).sFrame = "frmNarrow"
+                obNarrow(i).obCaption = ob.Caption
+                'set option to disable at first
+                ob.Enabled = False
+                ob.Value = False
+            Next i
+            frmNarrow.Height = rg.Cells.Count * OBHeight + 30
+            'validate items on frame Narrow
+            For iRw = 1 To rgBroadDst.Rows.Count - 1
+                For Each ctr In frmNarrow.Controls
+                    On Error Resume Next
+                    If ctr.Caption = wsDst.Cells(rgBroadDst.Row + iRw, clmNarrowDst).Value Then
+                        ctr.Enabled = True
+                        Exit For
+                    End If
+                Next ctr
+            Next
+            If sNarrow <> "" Then
+                Dim obNarr As MSForms.OptionButton
+                Set obNarr = Nothing
+                For Each ctr In frmNarrow.Controls
+                    If ctr.Caption = sNarrow And ctr.Enabled Then
+                        TriggerEvent = False
+                        Set obNarr = ctr
+                        obNarr.Value = True
+                        TriggerEvent = True
+                        Exit For
+                    End If
+                Next
+                If Not obNarr Is Nothing Then
+                    Call NarrowClick(obNarr)
+                End If
+            End If
+        End If
+    Else
+        FrameControlsEnable frmNarrow, False
+        FillTable
+        ListSimilarProviders
+    End If
+End Function
+
+Function NarrowClick(ob As MSForms.OptionButton)
+    On Error Resume Next
+    sNarrow = ob.Caption
+    'write to sheet to be used by chart title
+    wsGraphs.Cells(56, 3).Value = ob.Caption
+    CancelFilter
+    Set rgNarrowDst = FindRange(wsDst, rgBroadDst, clmNarrowDst, sNarrow)
+    Set rgNarrowErn = FindRange(wsErn, rgBroadErn, clmNarrowErn, sNarrow)
+    Set rgNarrowDstAll = FindRange(wsDst, rgBroadDstAll, clmNarrowDst, sNarrow)
+    Set rgNarrowErnAll = FindRange(wsErn, rgBroadErnAll, clmNarrowErn, sNarrow)
+    FillTable
+    ListSimilarProviders
+End Function
+
+Function cbProvicderChange()
+    On Error Resume Next
+    CancelFilter
+    'keep selection and initial option buttons on all frames
+    Dim cbProvider As MSForms.ComboBox
+    Set cbProvider = frmMain.cbProvider     'wsGraphs.OLEObjects("cbProvider").Object
+    sProvider = cbProvider.Value
+    'wsGraphs.Cells(56, 10).Value = sProvider    '### keep value into cell
+    wsGraphs.Cells(ProviderRw, ProviderClm).Value = sProvider
+    Application.Calculate   'refresh
+    If sProvider = "" Then Exit Function
+    If wsErn Is Nothing Then
+        Call Init(False)
+    End If
+    'reset frames
+    FrameControlsEnable frmLevel, True
+    FrameControlsEnable frmFieldType, True
+    FrameControlsEnable frmBroad, False
+    FrameControlsEnable frmNarrow, False
+    
+    'pupulate range
+    Set rgProviderErn = FindRange(wsErn, wsErn.Columns(clmProviderErn), clmProviderErn, sProvider)
+    Set rgProviderDst = FindRange(wsDst, wsDst.Columns(clmProviderDst), clmProviderDst, sProvider)
+        
+    'generate option buttons for frame Qualification level
+    'frmLevel.Controls.Clear
+    If frmLevel.Controls.Count = 0 Then
+        RwLast = wsData.Cells(wsData.Rows.Count, clmLevel).End(xlUp).Row
+        Set rg = wsData.Range(wsData.Cells(1, clmLevel), wsData.Cells(RwLast, clmLevel))
+        For Each cl In rg
+            Set ob = frmLevel.Controls.Add("Forms.OptionButton.1")
+            ob.Top = (frmLevel.Controls.Count) * PosTop
+            ob.Left = PosLeft
+            ob.Height = OBHeight
+            ob.Width = OBWidth
+            ob.Caption = cl.Value
+            ob.Font.Size = OBFontSize
+            ob.Font.Bold = OBFontBold
+        Next cl
+    End If
+    'validte items on frame levle
+    Dim rgTmp As Range
+    Dim iAry As Integer
+    Dim ctr As Control
+    For i = 0 To frmLevel.Controls.Count - 1
+        On Error Resume Next
+        Set ctr = frmLevel.Controls(i)
+        Set rgTmp = rgProviderDst.Find(ctr.Caption, , xlValues, xlWhole)
+        If rgTmp Is Nothing Then
+            ctr.Enabled = False
+        Else
+            ctr.Enabled = True
+        End If
+        Set obLevel(i).OBHandler = ctr
+        obLevel(i).sFrame = "frmLevel"
+    Next i
+    
+    'check if level has valid status
+    If sLevel <> "" Then
+        Dim obLevelTmp As MSForms.OptionButton
+        Set obLevelTmp = Nothing
+        For Each ctr In frmLevel.Controls
+            If ctr.Caption = sLevel Then
+                If ctr.Enabled Then
+                    TriggerEvent = False
+                    Set obLevelTmp = ctr
+                    obLevelTmp.Value = True
+                    TriggerEvent = True
+                Else
+                    sLevel = ""
+                    TriggerSimilar = False
+                    cbSimilar.Value = ""
+                    TriggerSimilar = True
+                End If
+                Exit For
+            End If
+        Next ctr
+        If Not obLevelTmp Is Nothing Then
+            Call LevelClick(obLevelTmp)
+        End If
+    End If
+    FillTable
+End Function
+
+Function SetOBs(frm As MSForms.Frame, status As Boolean)
+'set option buttons within a frame enabled or disabled
+    For Each ctr In frm.Controls
+        ctr.Enabled = status
+    Next ctr
+End Function
+
+Private Sub showForm(ribbon As IRibbonControl)
+    frmMain.Show
+End Sub
+
+Function ListSimilarProviders()
+'list all providers that have the same field of study
+    If sProvider = "" Then Exit Function
+    
+    Dim RwFirst As Long 'first found range
+    Dim rgSearching As Range    'other found
+    Dim sTxt As String
+    Dim clm As String
+    
+    If sFieldType = "All" Then
+        sTxt = "All"
+        clm = clmFieldTypeDst
+    ElseIf sNarrow = "" Then
+        sTxt = sBroad
+        clm = clmBroadDst
+    Else
+        sTxt = sNarrow
+        clm = clmNarrowDst
+    End If
+    'find out similar providers by Broad field
+    Set rgSearching = wsDst.Columns(clm).Find(sTxt, , xlValues, xlWhole)
+    TriggerSimilar = False
+    cbSimilar.Clear
+    TriggerSimilar = True
+    'find first occurance and keep the row number
+    If Not rgSearching Is Nothing Then
+        RwFirst = rgSearching.Row
+    Else
+        Exit Function
+    End If
+    Do
+        'check different Provider name
+        If wsDst.Cells(rgSearching.Row, clmProviderDst).Value <> "All providers" Then
+            'check same Level and same FieldType
+            If wsDst.Cells(rgSearching.Row, clmLevelDst).Value = sLevel _
+                And wsDst.Cells(rgSearching.Row, clmFieldTypeDst).Value = sFieldType _
+                And (wsDst.Cells(rgSearching.Row, clmBroadDst).Value = sBroad Or sFieldType = "All") Then
+                'check has values other then 'Numbers'
+                Dim cl As Range
+                For Each cl In wsDst.Range(wsDst.Cells(rgSearching.Row, clmEmpDst), wsDst.Cells(rgSearching.Row, "BD"))
+                    If cl.Value <> "S" And cl.Value <> "" Then
+                        cbSimilar.AddItem wsDst.Cells(rgSearching.Row, clmProviderDst).Value, cbSimilar.ListCount
+                        Exit For
+                    End If
+                Next cl
+            End If
+        End If
+        Set rgSearching = wsDst.Columns(clm).FindNext(rgSearching)
+    Loop While rgSearching.Row > RwFirst
+    SortCb cbSimilar
+    TriggerSimilar = False
+    cbSimilar.Value = sProvider
+    TriggerSimilar = True
+End Function
+
+Public Function SortCb(cb As MSForms.ComboBox)
+'sort combo box items
+    If cb.ListCount < 2 Then Exit Function
+    Dim vList As Variant
+    Dim vTmp As Variant
+    vList = cb.List
+    Dim i As Long
+    Dim j As Long
+    For i = LBound(vList, 1) To UBound(vList, 1)
+        For j = i + 1 To UBound(vList, 1)
+            If vList(i, 0) > vList(j, 0) Then
+                vTmp = vList(i, 0)
+                vList(i, 0) = vList(j, 0)
+                vList(j, 0) = vTmp
+            End If
+        Next
+    Next
+    TriggerSimilar = False
+    cb.Clear
+    TriggerSimilar = True
+    For i = LBound(vList, 1) To UBound(vList, 1)
+        cb.AddItem vList(i, 0)
+    Next i
+End Function
+
+Public Function CancelFilter()
+'show all data in sheet destinations and ernings
+    If wsDst.AutoFilterMode Then
+        wsDst.AutoFilterMode = False
+    End If
+    If wsErn.AutoFilterMode Then
+        wsErn.AutoFilterMode = False
+    End If
+End Function
+
 Function FrameControlsEnable(frm As MSForms.Frame, enable As Boolean)
 'enable/disable frame and controns in it
     On Error Resume Next
@@ -275,7 +724,9 @@ Function FillTable()
         
         Exit Function
     End If
-
+    If wsErn Is Nothing Then
+        Set wsErn = ThisWorkbook.Sheets("Earnings")     '18/08/2017, wsErn lost object, reason unknown.
+    End If
     Select Case sFieldType
     Case "All"
         Set baseClDst = FindRange(wsDst, rgLevelDst, clmFieldTypeDst, "All")
@@ -463,430 +914,14 @@ Function GetFrameValues()
     End If
 End Function
 
-Function LevelClick(ob As MSForms.OptionButton)
-    On Error Resume Next
-    sLevel = ob.Caption
-    'setup relevant ranges
-    CancelFilter
-    Set rgLevelDst = FindRange(wsDst, rgProviderDst, clmLevelDst, sLevel)
-    Set rgLevelErn = FindRange(wsErn, rgProviderErn, clmLevelErn, sLevel)
-    Set rgLevelDstAll = FindRange(wsDst, rgProviderDstAll, clmLevelDst, sLevel)
-    Set rgLevelErnAll = FindRange(wsErn, rgProviderErnAll, clmLevelErn, sLevel)
-    
-    'generate option buttons for frame field type level
-    If frmFieldType.Controls.Count = 0 Then
-        RwLast = wsData.Cells(wsData.Rows.Count, clmFieldType).End(xlUp).Row
-        Set rg = wsData.Range(wsData.Cells(1, clmFieldType), wsData.Cells(RwLast, clmFieldType))
-        For Each cl In rg
-            Set ob = frmFieldType.Controls.Add("Forms.OptionButton.1")
-            ob.Top = (frmFieldType.Controls.Count) * PosTop
-            ob.Left = PosLeft
-            ob.Height = OBHeight
-            ob.Width = OBWidth
-            ob.Name = cl.Value  '###15/08/2017
-            ob.Caption = cl.Value & " field of study"   '###15/08/2017
-            ob.Font.Size = OBFontSize
-            ob.Font.Bold = OBFontBold
-        Next cl
-    End If
-    'heritage status from previous stage
-    If sFieldType <> "" Then
-        Dim opTmp As MSForms.OptionButton
-        Set opTmp = Nothing
-        For Each ctr In frmFieldType.Controls
-            'If ctr.Caption = sFieldType Then   ###15/08/2017
-            If ctr.Name = sFieldType Then
-                TriggerEvent = False
-                Set opTmp = ctr
-                opTmp.Value = True
-                TriggerEvent = True
-                Exit For
-            End If
-        Next
-        '### when setting its value, it triggers the OBHandler event, so below call is not necessary
-        Call FieldTypeClick(opTmp)
-    Else
-        'try fill table, actually will clear the table
-        FillTable
-    End If
-    
-End Function
-
-Function FieldTypeClick(ob As MSForms.OptionButton)
-    On Error Resume Next
-    sFieldType = ob.Name 'ob.Caption ###15/08/2017
-    CancelFilter
-    'setup broad and narrow frames
-    Select Case ob.Name    'ob.Caption  ###15/08/2017
-        Case "All"
-            FrameControlsEnable frmBroad, False
-            FrameControlsEnable frmNarrow, False
-            'setup relevant ranges
-            Set rgFieldTypeDst = FindRange(wsDst, rgLevelDst, clmFieldTypeDst, sFieldType)
-            Set rgFieldTypeErn = FindRange(wsErn, rgLevelErn, clmFieldTypeErn, sFieldType)
-            Set rgFieldTypeDstAll = FindRange(wsDst, rgLevelDstAll, clmFieldTypeDst, sFieldType)
-            Set rgFieldTypeErnAll = FindRange(wsErn, rgLevelErnAll, clmFieldTypeErn, sFieldType)
-            TriggerSimilar = False
-            frmMain.cbSimilar.Clear
-            TriggerSimilar = True
-            FillTable
-        Case "Broad", "Narrow"
-            'If ob.Caption = "Broad" Then   ###15/08/2017
-            If ob.Name = "Broad" Then
-                FrameControlsEnable frmBroad, True
-                FrameControlsEnable frmNarrow, False
-            Else
-                FrameControlsEnable frmBroad, True
-                FrameControlsEnable frmNarrow, True
-            End If
-            'If ob.Caption = "Broad" Then   ###15/08/2017
-            If ob.Name = "Braod" Then
-                frmNarrow.Controls.Clear
-            End If
-            'use same range as level
-            Set rgFieldTypeDst = rgLevelDst
-            Set rgFieldTypeErn = rgLevelErn
-            Set rgFieldTypeDstAll = rgLevelDstAll
-            Set rgFieldTypeErnAll = rgLevelErnAll
-            
-            'generate controls for frame Broad field of study
-            Set frmBroad = frmMain.frmBroad 'wsGraphs.OLEObjects("frmBroad").Object
-            'frmBroad.Controls.Clear
-            If frmBroad.Controls.Count = 0 Then
-                RwLast = wsData.Cells(wsData.Rows.Count, clmBroad).End(xlUp).Row
-                Set rg = wsData.Range(wsData.Cells(1, clmBroad), wsData.Cells(RwLast, clmBroad))
-                For Each cl In rg
-                    Set ob = frmBroad.Controls.Add("Forms.OptionButton.1")
-                    ob.Top = (frmBroad.Controls.Count) * PosTop
-                    ob.Left = PosLeft
-                    ob.Height = OBHeight
-                    ob.Width = OBWidth
-                    ob.Caption = cl.Value
-                    ob.Font.Size = OBFontSize
-                    ob.Font.Bold = OBFontBold
-                    Set obBroad(cl.Row - 1).OBHandler = ob
-                    obBroad(cl.Row - 1).obCaption = ob.Caption
-                    obBroad(cl.Row - 1).sFrame = "frmBroad"
-                    'disable item first
-                    ob.Enabled = False
-                    ob.Value = False
-                Next cl
-            End If
-            'validte items in frame Broad
-            SetOBs frmBroad, False  'disabled all first, then enable the ones in range
-            For iRw = 0 To rgFieldTypeDst.Rows.Count - 1
-                If wsDst.Cells(rgFieldTypeDst.Row + iRw, clmFieldTypeDst).Value = "Broad" Then
-                    For i = 0 To frmBroad.Controls.Count - 1
-                        If frmBroad.Controls(i).Caption = wsDst.Cells(rgFieldTypeDst.Row + iRw, clmBroadDst).Value Then
-                            Dim oppp As MSForms.OptionButton
-                            Set oppp = frmBroad.Controls(i)
-                            oppp.Enabled = True
-                            Set obBroad(i).OBHandler = oppp
-                            obBroad(i).sFrame = "frmBroad"
-                            Exit For
-                        End If
-                    Next i
-                End If
-            Next iRw
-            'select the option button that has been selected from previous stage
-            If sBroad <> "" Then
-                Dim obtmp As MSForms.OptionButton
-                Set obtmp = Nothing
-                For Each ctr In frmBroad.Controls
-                    If ctr.Caption = sBroad And ctr.Enabled Then
-                        TriggerEvent = False
-                        Set obtmp = ctr
-                        obtmp.Value = True
-                        TriggerEvent = True
-                        Exit For
-                    End If
-                Next ctr
-                'no Broad item is selected
-                If obtmp Is Nothing Then
-                    sNarrow = ""
-                    frmNarrow.Controls.Clear
-                Else
-                    Call BroadClick(obtmp)
-                End If
-            Else
-                FillTable
-            End If
-        Case Else
-    End Select
-End Function
-
-Function BroadClick(ob As MSForms.OptionButton)
-    On Error Resume Next
-    sBroad = ob.Caption
-    CancelFilter
-    'setup relevant ranges
-    'within a certain level range, the broad field name leads to broad field rows only
-    'so just search broad field name in the level range will get the correct rows
-    'below rgFieldTypeDst = rgLevelDst, rgFieldTypeErn = rgFieldTypeErn
-    Set rgBroadDst = FindRange(wsDst, rgFieldTypeDst, clmBroadDst, sBroad)
-    Set rgBroadErn = FindRange(wsErn, rgFieldTypeErn, clmBroadErn, sBroad)
-    Set rgBroadDstAll = FindRange(wsDst, rgFieldTypeDstAll, clmBroadDst, sBroad)
-    Set rgBroadErnAll = FindRange(wsErn, rgFieldTypeErnAll, clmBroadErn, sBroad)
-            
-    'populate Narrow fields
-    If sFieldType = "Narrow" Then
-        FrameControlsEnable frmNarrow, True
-        frmNarrow.Controls.Clear
-        If frmNarrow.Controls.Count = 0 Then
-            Set wsData = ThisWorkbook.Sheets("Data")
-            'set range based on button clicked in frmBroad
-            Set rg = wsData.Columns(clmBroadAll).Find(Replace(Replace(ob.Caption, " ", ""), ",", ""), LookIn:=xlValues)
-            If Not rg Is Nothing Then
-                'define rg to next row and next column
-                Set rg = rg.Offset(1, 1)
-                Set cl = rg
-                'search for next empty cell
-                Do While Len(cl.Value) <> 0
-                    Set cl = cl.Offset(1, 0)
-                Loop
-                'redefine rg
-                Set rg = wsData.Range(rg, cl.Offset(-1, 0))
-            End If
-            Set cl = Nothing
-            'populate option buttons for narrow field study
-            For i = 1 To rg.Cells.Count
-                Set ob = frmNarrow.Controls.Add("Forms.OptionButton.1")
-                ob.Top = frmNarrow.Controls.Count * PosTop
-                ob.Left = PosLeft
-                ob.Height = OBHeight
-                ob.Width = OBWidth + 50
-                ob.Caption = rg.Cells(i).Value
-                ob.Font.Size = OBFontSize
-                ob.Font.Bold = OBFontBold
-                Set obNarrow(i).OBHandler = ob
-                obNarrow(i).sFrame = "frmNarrow"
-                obNarrow(i).obCaption = ob.Caption
-                'set option to disable at first
-                ob.Enabled = False
-                ob.Value = False
-            Next i
-            frmNarrow.Height = rg.Cells.Count * OBHeight + 30
-            'validate items on frame Narrow
-            For iRw = 1 To rgBroadDst.Rows.Count - 1
-                For Each ctr In frmNarrow.Controls
-                    On Error Resume Next
-                    If ctr.Caption = wsDst.Cells(rgBroadDst.Row + iRw, clmNarrowDst).Value Then
-                        ctr.Enabled = True
-                        Exit For
-                    End If
-                Next ctr
-            Next
-            If sNarrow <> "" Then
-                Dim obNarr As MSForms.OptionButton
-                Set obNarr = Nothing
-                For Each ctr In frmNarrow.Controls
-                    If ctr.Caption = sNarrow And ctr.Enabled Then
-                        TriggerEvent = False
-                        Set obNarr = ctr
-                        obNarr.Value = True
-                        TriggerEvent = True
-                        Exit For
-                    End If
-                Next
-                If Not obNarr Is Nothing Then
-                    Call NarrowClick(obNarr)
-                End If
-            End If
-        End If
-    Else
-        FrameControlsEnable frmNarrow, False
-        FillTable
-        ListSimilarProviders
-    End If
-End Function
-
-Function NarrowClick(ob As MSForms.OptionButton)
-    On Error Resume Next
-    sNarrow = ob.Caption
-    CancelFilter
-    Set rgNarrowDst = FindRange(wsDst, rgBroadDst, clmNarrowDst, sNarrow)
-    Set rgNarrowErn = FindRange(wsErn, rgBroadErn, clmNarrowErn, sNarrow)
-    Set rgNarrowDstAll = FindRange(wsDst, rgBroadDstAll, clmNarrowDst, sNarrow)
-    Set rgNarrowErnAll = FindRange(wsErn, rgBroadErnAll, clmNarrowErn, sNarrow)
-    FillTable
-    ListSimilarProviders
-End Function
-
-Function cbProvicderChange()
-    On Error Resume Next
-    CancelFilter
-    'keep selection and initial option buttons on all frames
-    Dim cbProvider As MSForms.ComboBox
-    Set cbProvider = frmMain.cbProvider     'wsGraphs.OLEObjects("cbProvider").Object
-    sProvider = cbProvider.Value
-    wsGraphs.Cells(ProviderRw, ProviderClm).Value = sProvider
-    Application.Calculate   'refresh
-    If sProvider = "" Then Exit Function
-    If wsErn Is Nothing Then
-        Call Init(False)
-    End If
-    'reset frames
-    FrameControlsEnable frmLevel, True
-    FrameControlsEnable frmFieldType, True
-    FrameControlsEnable frmBroad, False
-    FrameControlsEnable frmNarrow, False
-    
-    'pupulate range
-    Set rgProviderErn = FindRange(wsErn, wsErn.Columns(clmProviderErn), clmProviderErn, sProvider)
-    Set rgProviderDst = FindRange(wsDst, wsDst.Columns(clmProviderDst), clmProviderDst, sProvider)
-        
-    'generate option buttons for frame Qualification level
-    'frmLevel.Controls.Clear
-    If frmLevel.Controls.Count = 0 Then
-        RwLast = wsData.Cells(wsData.Rows.Count, clmLevel).End(xlUp).Row
-        Set rg = wsData.Range(wsData.Cells(1, clmLevel), wsData.Cells(RwLast, clmLevel))
-        For Each cl In rg
-            Set ob = frmLevel.Controls.Add("Forms.OptionButton.1")
-            ob.Top = (frmLevel.Controls.Count) * PosTop
-            ob.Left = PosLeft
-            ob.Height = OBHeight
-            ob.Width = OBWidth
-            ob.Caption = cl.Value
-            ob.Font.Size = OBFontSize
-            ob.Font.Bold = OBFontBold
-        Next cl
-    End If
-    'validte items on frame levle
-    Dim rgTmp As Range
-    Dim iAry As Integer
-    Dim ctr As Control
-    For i = 0 To frmLevel.Controls.Count - 1
-        On Error Resume Next
-        Set ctr = frmLevel.Controls(i)
-        Set rgTmp = rgProviderDst.Find(ctr.Caption, , xlValues, xlWhole)
-        If rgTmp Is Nothing Then
-            ctr.Enabled = False
-        Else
-            ctr.Enabled = True
-        End If
-        Set obLevel(i).OBHandler = ctr
-        obLevel(i).sFrame = "frmLevel"
-    Next i
-    
-    'check if level has valid status
-    If sLevel <> "" Then
-        Dim obLevelTmp As MSForms.OptionButton
-        Set obLevelTmp = Nothing
-        For Each ctr In frmLevel.Controls
-            If ctr.Caption = sLevel Then
-                If ctr.Enabled Then
-                    TriggerEvent = False
-                    Set obLevelTmp = ctr
-                    obLevelTmp.Value = True
-                    TriggerEvent = True
-                Else
-                    sLevel = ""
-                    TriggerSimilar = False
-                    cbSimilar.Value = ""
-                    TriggerSimilar = True
-                End If
-                Exit For
-            End If
-        Next ctr
-        If Not obLevelTmp Is Nothing Then
-            Call LevelClick(obLevelTmp)
-        End If
-    End If
-    FillTable
-End Function
-
-Function SetOBs(frm As MSForms.Frame, status As Boolean)
-'set option buttons within a frame enabled or disabled
+Function GetValue(frm As MSForms.Frame) As String
+    GetValue = ""
     For Each ctr In frm.Controls
-        ctr.Enabled = status
-    Next ctr
-End Function
-
-Private Sub showForm(ribbon As IRibbonControl)
-    frmMain.Show
-End Sub
-
-Function ListSimilarProviders()
-'list all providers that have the same field of study
-    If sProvider = "" Or sFieldType = "All" Or sBroad = "" Then Exit Function
-    
-    Dim RwFirst As Long 'first found range
-    Dim rgSearching As Range    'other found
-    Dim sTxt As String
-    Dim clm As String
-    
-    If sNarrow = "" Then
-        sTxt = sBroad
-        clm = clmBroadDst
-    Else
-        sTxt = sNarrow
-        clm = clmNarrowDst
-    End If
-    'find out similar providers by Broad field
-    Set rgSearching = wsDst.Columns(clm).Find(sTxt, , xlValues, xlWhole)
-    TriggerSimilar = False
-    cbSimilar.Clear
-    TriggerSimilar = True
-    'find first occurance and keep the row number
-    If Not rgSearching Is Nothing Then
-        RwFirst = rgSearching.Row
-    Else
-        Exit Function
-    End If
-    Do
-        'check different Provider name
-        If wsDst.Cells(rgSearching.Row, clmProviderDst).Value <> "All providers" Then
-            'check same Level and same FieldType
-            If wsDst.Cells(rgSearching.Row, clmLevelDst).Value = sLevel _
-                And wsDst.Cells(rgSearching.Row, clmFieldTypeDst).Value = sFieldType _
-                And wsDst.Cells(rgSearching.Row, clmBroadDst).Value = sBroad Then
-                'check has values other then 'Numbers'
-                Dim cl As Range
-                For Each cl In wsDst.Range(wsDst.Cells(rgSearching.Row, clmEmpDst), wsDst.Cells(rgSearching.Row, "BD"))
-                    If cl.Value <> "S" And cl.Value <> "" Then
-                        cbSimilar.AddItem wsDst.Cells(rgSearching.Row, clmProviderDst).Value, cbSimilar.ListCount
-                        Exit For
-                    End If
-                Next cl
+        If InStr(TypeName(ctr), "OptionButton") > 0 Then
+            If ctr.Value And ctr.Enabled Then
+                GetValue = ctr.Name
+                Exit For
             End If
         End If
-        Set rgSearching = wsDst.Columns(clm).FindNext(rgSearching)
-    Loop While rgSearching.Row > RwFirst
-    SortCb cbSimilar
-    TriggerSimilar = False
-    cbSimilar.Value = sProvider
-    TriggerSimilar = True
-End Function
-
-Public Function SortCb(cb As MSForms.ComboBox)
-'sort combo box items
-    If cb.ListCount < 2 Then Exit Function
-    Dim vList As Variant
-    Dim vTmp As Variant
-    vList = cb.List
-    Dim i As Long
-    Dim j As Long
-    For i = LBound(vList, 1) To UBound(vList, 1)
-        For j = i + 1 To UBound(vList, 1)
-            If vList(i, 0) > vList(j, 0) Then
-                vTmp = vList(i, 0)
-                vList(i, 0) = vList(j, 0)
-                vList(j, 0) = vTmp
-            End If
-        Next
-    Next
-    cb.Clear
-    For i = LBound(vList, 1) To UBound(vList, 1)
-        cb.AddItem vList(i, 0)
-    Next i
-End Function
-
-Public Function CancelFilter()
-'show all data in sheet destinations and ernings
-    If wsDst.AutoFilterMode Then
-        wsDst.AutoFilterMode = False
-    End If
-    If wsErn.AutoFilterMode Then
-        wsErn.AutoFilterMode = False
-    End If
+    Next ctr
 End Function
