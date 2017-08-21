@@ -366,6 +366,7 @@ Function FieldTypeClick(ob As MSForms.OptionButton)
                 If obtmp Is Nothing Then
                     sNarrow = ""
                     frmNarrow.Controls.Clear
+                    ClearTable  'if previous Broad stage not valid for current provider/level, clear table to reset charts
                 Else
                     Call BroadClick(obtmp)
                 End If
@@ -454,7 +455,13 @@ Function BroadClick(ob As MSForms.OptionButton)
                 Next
                 If Not obNarr Is Nothing Then
                     Call NarrowClick(obNarr)
+                Else
+                    ClearTable  'if Narrow field of previous stage not valid for current provider/level, clear table to reset charts
+                    wsGraphs.Cells(56, 3).Value = "Narrow field of study"
                 End If
+            Else
+                ClearTable  'when Narrow selected in Field Tyep but not set yet, clear table to reset charts.
+                wsGraphs.Cells(56, 3).Value = "Narrow field of study"
             End If
         End If
     Else
@@ -768,13 +775,20 @@ Function FillTable()
         Set clTbl = wsGraphs.Cells(ProviderBaseRw + 1, BaseClm) 'fill other rows
         ExtractCell wsDst, clSrc, wsGraphs, clTbl, 45, 9
         'fill Provider table 'Earnings' part
-        Set clSrc = wsErn.Cells(baseClErn.Row, clmAEErn)
-        Set clTbl = wsGraphs.Cells(ProviderBaseRw + 7, BaseClm)
-        ExtractCell wsErn, clSrc, wsGraphs, clTbl, 9, 9
-        Set clSrc = wsErn.Cells(baseClErn.Row, clmNumErn)
-        Set clTbl = wsGraphs.Cells(ProviderBaseRw + 6, BaseClm)
-        ExtractCell wsErn, clSrc, wsGraphs, clTbl, 9, 9
-        
+        If baseClErn Is Nothing Then    'in case sheet Earnings has no coresponding data, fill table's number & earnings row with '0' and blank.
+            'using Earnings sheet dummy row data
+            For i = BaseClm To BaseClm + 8
+                wsGraphs.Cells(ProviderBaseRw + 6, i).Value = "0"
+                wsGraphs.Cells(ProviderBaseRw + 7, i).Value = ""
+            Next i
+        Else
+            Set clSrc = wsErn.Cells(baseClErn.Row, clmAEErn)
+            Set clTbl = wsGraphs.Cells(ProviderBaseRw + 7, BaseClm)
+            ExtractCell wsErn, clSrc, wsGraphs, clTbl, 9, 9
+            Set clSrc = wsErn.Cells(baseClErn.Row, clmNumErn)
+            Set clTbl = wsGraphs.Cells(ProviderBaseRw + 6, BaseClm)
+            ExtractCell wsErn, clSrc, wsGraphs, clTbl, 9, 9
+        End If
         'fill All Provider table 'Destinations' part
         Set clSrc = wsDst.Cells(baseClDstAll.Row, clmNumDst)
         Set clTbl = wsGraphs.Cells(AllBaseRw, BaseClm)
@@ -783,12 +797,20 @@ Function FillTable()
         Set clTbl = wsGraphs.Cells(AllBaseRw + 1, BaseClm) 'fill other rows
         ExtractCell wsDst, clSrc, wsGraphs, clTbl, 45, 9
         'fill All Provider table 'Earnings' part
-        Set clSrc = wsErn.Cells(baseClErnAll.Row, clmAEErn)
-        Set clTbl = wsGraphs.Cells(AllBaseRw + 7, BaseClm)
-        ExtractCell wsErn, clSrc, wsGraphs, clTbl, 9, 9
-        Set clSrc = wsErn.Cells(baseClErnAll.Row, clmNumErn)
-        Set clTbl = wsGraphs.Cells(AllBaseRw + 6, BaseClm)
-        ExtractCell wsErn, clSrc, wsGraphs, clTbl, 9, 9
+        If baseClErn Is Nothing Then    'in case sheet Earnings has no coresponding data, fill table's number & earnings row with '0' and blank.
+            'using Earnings sheet dummy row data
+            For i = BaseClm To BaseClm + 8
+                wsGraphs.Cells(AllBaseRw + 6, i).Value = "0"
+                wsGraphs.Cells(AllBaseRw + 7, i).Value = ""
+            Next i
+        Else
+            Set clSrc = wsErn.Cells(baseClErnAll.Row, clmAEErn)
+            Set clTbl = wsGraphs.Cells(AllBaseRw + 7, BaseClm)
+            ExtractCell wsErn, clSrc, wsGraphs, clTbl, 9, 9
+            Set clSrc = wsErn.Cells(baseClErnAll.Row, clmNumErn)
+            Set clTbl = wsGraphs.Cells(AllBaseRw + 6, BaseClm)
+            ExtractCell wsErn, clSrc, wsGraphs, clTbl, 9, 9
+        End If
     End If
     Application.Calculate
     ThisWorkbook.RefreshAll
@@ -844,6 +866,7 @@ Function ClearTable()
         rg.Value = ""
     End If
     Application.ScreenUpdating = True
+    Calculate
 End Function
 
 Function GetFrameValues()
