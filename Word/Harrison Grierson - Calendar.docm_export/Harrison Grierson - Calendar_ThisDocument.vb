@@ -10,31 +10,23 @@ Attribute VB_Exposed = True
 'Built by Allfields for Harrison Grierson, to be used on Windows with Microsoft Office 2010/2013/2016
 'Last edited:   22/08/2017, tao@allfields.co.nz
 Private Sub Document_ContentControlOnExit(ByVal ContentControl As ContentControl, Cancel As Boolean)
-    Dim cc As ContentControl
-    Dim doc As Document
-    Dim sDate As String
-    Dim tb As Table
-    Dim tbCalendar As Table
-            
     Application.ScreenUpdating = False
     On Error Resume Next
-    Debug.Print ContentControl.Tag
-    'If IsDate(ActiveDocument.SelectContentControlsByTag("ccMonth").Item(1).Range.Text) Then
-    'Set ContentControl = ActiveDocument.SelectContentControlsByTag("ccMonth").Item(1)
     If ContentControl.Tag = "ccMonth" Then    'for cc Month, caculate correct calendar layout
+        If Not IsDate(ContentControl.Range.Text) Then Exit Sub
+        On Error Resume Next
+        Dim cc As ContentControl
+        Dim doc As Document
+        Dim sDate As String
+        Dim tb As Table
+        
         sDate = ContentControl.Range.Text
         Set doc = ThisDocument
-        
         'validate input data
         Dim iDays As Integer    'number of days of the selected month
         Dim iLastMonthDays As Integer   'number of days of last month
-        On Error Resume Next
-        If Not IsDate(sDate) Then Exit Sub
         iDays = DaysOfMonth(CDate(sDate))
         iLastMonthDays = DaysOfMonth(DateSerial(Year(IIf(Month(sDate) = "1", Year(sDate) - 1, Year(sDate))), IIf(Month(sDate) = "1", "12", Month(sDate) - 1), 1))
-        Debug.Print "Yeasr: " & Year(IIf(Month(sDate) = "1", Year(sDate) - 1, Year(sDate))) & " Month: " & IIf(Month(sDate) = "1", "12", Month(sDate) - 1)
-        Debug.Print iLastMonthDays
-        
         If Err.Number > 0 Then Exit Sub     'non-date input
                 
         'set Month and Year text
@@ -50,7 +42,7 @@ Private Sub Document_ContentControlOnExit(ByVal ContentControl As ContentControl
         ' fill calendar's day numbers, based on month chosen
         For Each tb In doc.Tables
             If InStr(LCase(tb.Cell(4, 1).Range.Text), "mon") > 0 Then
-                If tb.Rows.Count = 14 And tb.Columns.Count = 7 Then
+                If tb.Rows.Count = 16 And tb.Columns.Count = 7 Then
                     Dim iRw As Integer
                     Dim cl As Cell
                     Dim iClm As Integer
@@ -60,12 +52,7 @@ Private Sub Document_ContentControlOnExit(ByVal ContentControl As ContentControl
                     iCounter = 1
                     iFirstWeekDay = Format(DateSerial(Year(sDate), Month(sDate), 1), "w")
                     iFirstWeekDay = IIf(iFirstWeekDay = "1", "7", iFirstWeekDay - 1)    'make Monday=1, Sunday=7
-                    For iRw = 5 To 13 Step 2
-                        'clear date cells
-'                        For Each cl In tb.Rows(iRw).Cells
-'                            cl.Range.Text = ""
-'                        Next cl
-                        'fill in new dates
+                    For iRw = 5 To 15 Step 2
                         For iClm = 1 To 7 Step 1
                             If iRw = 5 Then
                                 If iClm >= iFirstWeekDay And iCounter <= iDays Then
