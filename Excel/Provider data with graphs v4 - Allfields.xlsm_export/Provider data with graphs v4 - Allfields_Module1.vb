@@ -173,7 +173,7 @@ Function Init(all As Boolean)
         ob.Left = PosLeft
         ob.Height = OBHeight
         ob.Width = OBWidth
-        ob.Caption = cl.Value & " field of study" '###15/08/2017
+        ob.Caption = cl.Value & IIf(cl.Value = "All", " fields", " field") & " of study" 'use 'fields' for 'All', keep others 'field'
         ob.Name = cl.Value
         ob.Font.Size = OBFontSize
         ob.Font.Bold = OBFontBold
@@ -220,6 +220,7 @@ End Function
 
 Function LevelClick(ob As MSForms.OptionButton)
     On Error Resume Next
+    ClearTable
     sLevel = ob.Caption
     'write to cell to be used by chart title
     wsGraphs.Cells(56, 2).Value = ob.Caption
@@ -271,6 +272,7 @@ End Function
 
 Function FieldTypeClick(ob As MSForms.OptionButton)
     On Error Resume Next
+    ClearTable
     sFieldType = ob.Name 'ob.Caption ###15/08/2017
     wsGraphs.Cells(56, 3).Value = ob.Caption
     CancelFilter
@@ -379,6 +381,7 @@ End Function
 
 Function BroadClick(ob As MSForms.OptionButton)
     On Error Resume Next
+    ClearTable
     sBroad = ob.Caption
     'write to cell to be used by chart title
     wsGraphs.Cells(56, 3).Value = ob.Caption
@@ -419,8 +422,8 @@ Function BroadClick(ob As MSForms.OptionButton)
                 ob.Left = PosLeft
                 ob.Height = OBHeight
                 ob.Width = OBWidth + 50
-                ob.Caption = rg.Cells(i).Value
-                ob.Name = ob.Caption    '### 18/08/2017
+                ob.Caption = Left(rg.Cells(i).Value, 1) & LCase(Mid(rg.Cells(i).Value, 2, Len(rg.Cells(i).Value)))  'first letter upper case, others lower case
+                ob.Name = rg.Cells(i).Value
                 ob.Font.Size = OBFontSize
                 ob.Font.Bold = OBFontBold
                 Set obNarrow(i).OBHandler = ob
@@ -435,7 +438,7 @@ Function BroadClick(ob As MSForms.OptionButton)
             For iRw = 1 To rgBroadDst.Rows.Count - 1
                 For Each ctr In frmNarrow.Controls
                     On Error Resume Next
-                    If ctr.Caption = wsDst.Cells(rgBroadDst.Row + iRw, clmNarrowDst).Value Then
+                    If ctr.Name = wsDst.Cells(rgBroadDst.Row + iRw, clmNarrowDst).Value Then
                         ctr.Enabled = True
                         Exit For
                     End If
@@ -445,7 +448,7 @@ Function BroadClick(ob As MSForms.OptionButton)
                 Dim obNarr As MSForms.OptionButton
                 Set obNarr = Nothing
                 For Each ctr In frmNarrow.Controls
-                    If ctr.Caption = sNarrow And ctr.Enabled Then
+                    If ctr.Name = sNarrow And ctr.Enabled Then
                         TriggerEvent = False
                         Set obNarr = ctr
                         obNarr.Value = True
@@ -473,7 +476,8 @@ End Function
 
 Function NarrowClick(ob As MSForms.OptionButton)
     On Error Resume Next
-    sNarrow = ob.Caption
+    ClearTable
+    sNarrow = ob.Name   '### 24/08/2017
     'write to sheet to be used by chart title
     wsGraphs.Cells(56, 3).Value = ob.Caption
     CancelFilter
@@ -487,6 +491,8 @@ End Function
 
 Function cbProvicderChange()
     On Error Resume Next
+    wsGraphs.Cells(56, 2).Value = ""
+    ClearTable
     CancelFilter
     'keep selection and initial option buttons on all frames
     Dim cbProvider As MSForms.ComboBox
@@ -564,7 +570,13 @@ Function cbProvicderChange()
         Next ctr
         If Not obLevelTmp Is Nothing Then
             Call LevelClick(obLevelTmp)
+        Else
+            wsGraphs.Cells(56, 2).Value = ""
+            ClearTable
         End If
+    Else
+        wsGraphs.Cells(56, 2).Value = ""
+        ClearTable
     End If
     FillTable
 End Function
@@ -694,7 +706,7 @@ Public Function FindRange(ws As Worksheet, inRg As Range, clm As String, txt As 
     Dim RwEnd As Long   'end row number
     Set rgTmp = Nothing
     'find first row of the select provider
-    Set rgTmp = inRg.Find(txt, , xlValues, xlWhole)
+    Set rgTmp = inRg.Find(txt, , xlValues, xlWhole, , , False)  'look in values, whole cell, not match case
     If rgTmp Is Nothing Then
         Set FindRange = Nothing
         Exit Function
@@ -927,7 +939,7 @@ Function GetFrameValues()
             sNarrow = ""
             For Each ctr In frmNarrow.Controls
                 If ctr.Value And ctr.Enabled Then
-                    sNarrow = ctr.Caption
+                    sNarrow = ctr.Name
                     Exit For
                 End If
             Next ctr
