@@ -10,17 +10,14 @@ Attribute VB_Exposed = False
 Public Name As String
 Public sQuestion As String
 Public ActionNo As Integer
-Public oPre As New oNode
-Public oNext As New oNode
 Public sAnswer As String
 Public sTip As String
 Public NeedAnswer As Boolean
 Public YesNode As String    'name of the node when 'Yes' selected
 Public NoNode As String     'name of the node when 'No' selected
-
-Public Function PopulateForm()
-        
-End Function
+Public PreviousNode As String   'previous node to trace back
+Public NextNode As String
+Public YesNo As String      'store Yes/No selection, could be 'y' 'n' or blank(stands for no choice made)
 
 Private Sub Class_Initialize()
     'populate controls in form
