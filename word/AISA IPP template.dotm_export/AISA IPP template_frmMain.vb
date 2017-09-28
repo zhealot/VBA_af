@@ -13,7 +13,6 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
 Private Sub CommandButton1_Click()
     Dim ob As MSForms.OptionButton
     sSelectedCaption = ""
@@ -33,7 +32,7 @@ Private Sub CommandButton1_Click()
     End If
     Me.Hide
     If CommandButton1.Caption = "Yes" Then
-        Call CreateDocument(True)
+        Call CreateDocument("1")
     Else
         fmNodes.Show
     End If

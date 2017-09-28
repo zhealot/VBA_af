@@ -16,5 +16,4 @@ Private Sub oOBEvents_Click()
     Else
         frmMain.CommandButton1.Caption = "Yes"
     End If
-    
 End Sub

@@ -12,7 +12,7 @@ Public sQuestion As String
 Public ActionNo As Integer
 Public sAnswer As String
 Public sTip As String
-Public NeedAnswer As Boolean
+Public NeedAnswer As Boolean    'in normal node: to contain example text for inserted answer box; for 'permitted': to contain indicate text (replace question text)
 Public YesNode As String    'name of the node when 'Yes' selected
 Public NoNode As String     'name of the node when 'No' selected
 Public PreviousNode As String   'previous node to trace back

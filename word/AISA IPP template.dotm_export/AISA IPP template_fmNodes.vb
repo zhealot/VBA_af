@@ -27,10 +27,14 @@ Private Sub btnHelp_Click()
 End Sub
 
 Private Sub btnNext_Click()
-    If Not ValidateForm Then Exit Sub
-    GetNodeByName(GetNodeByName(sCurrent).NextNode).PreviousNode = sCurrent
-    sCurrent = GetNodeByName(sCurrent).NextNode
-    LoadNode sCurrent
+    If btnNext.Caption = "Finish" Then
+        CreateDocument ("finish")
+    Else
+        If Not ValidateForm Then Exit Sub
+        GetNodeByName(GetNodeByName(sCurrent).NextNode).PreviousNode = sCurrent
+        sCurrent = GetNodeByName(sCurrent).NextNode
+        LoadNode sCurrent
+    End If
 End Sub
 
 Private Sub btnPrevious_Click()
@@ -42,16 +46,18 @@ End Sub
 Function ValidateForm() As Boolean
 'check if controls/fields have been filled
     ValidateForm = False
-    If GetNodeByName(sCurrent).NeedAnswer And fmNodes.tbAnswer.Text = "" Then
+    If GetNodeByName(sCurrent).NeedAnswer And fmNodes.tbAnswer.Text = "" And obYes.Value Then
         MsgBox "Please give an answer to the question."
-        fmNodes.tbAnswer.SetFocus
+        If fmNodes.tbAnswer.Enabled Then
+            fmNodes.tbAnswer.SetFocus
+        End If
         Exit Function
     End If
     If GetNodeByName(sCurrent).ActionNo > 0 And Not GotAction Then
         MsgBox "Please choose an answer."
         Exit Function
     End If
-    GetNodeByName(sCurrent).sAnswer = tbAnswer.Text
+    'GetNodeByName(sCurrent).sAnswer = tbAnswer.Text
     If obYes.Value Then
         GetNodeByName(sCurrent).YesNo = "y"
     ElseIf obNo.Value Then
@@ -81,8 +87,8 @@ Public Sub YesNo_Click()
             GetNodeByName(GetNodeByName(sCurrent).YesNode).PreviousNode = sCurrent
             GetNodeByName(sCurrent).YesNo = "y"
             GetNodeByName(sCurrent).NextNode = GetNodeByName(sCurrent).YesNode
-            fmNodes.tbAnswer.Enabled = IIf(GetNodeByName(sCurrent).NeedAnswer, True, False)
-            fmNodes.lbTitle.Enabled = IIf(GetNodeByName(sCurrent).NeedAnswer, True, False)
+            fmNodes.tbAnswer.Enabled = False 'IIf(GetNodeByName(sCurrent).NeedAnswer, True, False)
+            fmNodes.lbTitle.Enabled = False 'IIf(GetNodeByName(sCurrent).NeedAnswer, True, False)
         ElseIf obNo.Value Then
             GetNodeByName(GetNodeByName(sCurrent).NoNode).PreviousNode = sCurrent
             GetNodeByName(sCurrent).YesNo = "n"
@@ -98,6 +104,6 @@ Public Sub YesNo_Click()
 End Sub
 Private Sub UserForm_Initialize()
     InitialNodes
-    LoadNode aryNodes(0).Name
-    sCurrent = aryNodes(0).Name
+    LoadNode FirstNode
+    sCurrent = FirstNode
 End Sub

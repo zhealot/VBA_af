@@ -1,4 +1,12 @@
 Attribute VB_Name = "Module1"
+'-----------------------------------------------------------------------------
+' Developed for DIA
+' Created by:       Allfields Customised Solutions Limited
+' Contact Info:     hello@allfields.co.nz, 04 978 7101
+' Date:             September 2017
+' Description:      Implement decision making tree for IPP
+'-----------------------------------------------------------------------------
+
 Public aryOptionButtons() As New OptionButtonEvent  'arrry to hold option button object in main frame
 Public sSelectedCaption As String       'caption of selected option button in first screen
 Public aryNodes() As New oNode
@@ -8,11 +16,37 @@ Public sCurrent As String   'current oNode name
 Public sNextNode As String  'next node name
 Public sPreNode As String   'previous node name
 Public EnableYesNoEvent As Boolean
+Public Const DefaultAnswerText = "Give your answer later."
+Public Const PlaceHolderText = "Space to write more"
+Public Const QuestionStyle = "Question" 'Word style name for question
+Public Const AnswerStyle = "Answer"     'Word style name for yes/no answer
+Public Const FirstNode = "1"            'name of node to start with
+
 
 Function InitialNodes()
+    ReDim aryNodes(0)
     aryNodeCnt = 0
+    '### Permitting and Exit node
+    CreateNode Name:="permitted", _
+                Question:="Your application is permitted.", _
+                YesNode:="", _
+                NoNode:="", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+    CreateNode Name:="exit", _
+                Question:="Your application is not permitted!", _
+                YesNode:="", _
+                NoNode:="", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+    
+    'Normal nodes
     CreateNode Name:="1", _
-                Question:="1 What was the purpose for collecting the information in the first place?", _
+                Question:="What was the purpose for collecting the information in the first place?", _
                 YesNode:="2", _
                 NoNode:="2", _
                 NeedAnswer:=True, _
@@ -20,61 +54,439 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=0, _
                 NextNode:="2"
+                
     CreateNode Name:="2", _
-                Question:="2 Was this purpose communicated to the individual concerned at the time of collection?", _
+                Question:="Was this purpose communicated to the individual concerned at the time of collection?", _
                 YesNode:="3", _
-                NoNode:="exit", _
-                NeedAnswer:=False, _
+                NoNode:="5", _
+                NeedAnswer:=True, _
                 Tip:="", _
-                Answer:="", _
+                Answer:="For example:" & vbNewLine & Chr(149) & "There is a statement on our arrival form that explains this type of disclosure, or" & vbNewLine & Chr(149) & "We have a legal opinion that this type of disclosure  is implicit in the purpose for collection", _
                 ActionNo:=2
+                
     CreateNode Name:="3", _
-                Question:="3 I have reasonable grounds to believe the disclosure is a purpose for collecting the information because:", _
+                Question:="I have reasonable grounds to believe the disclosure is a purpose for collecting the information because:", _
                 YesNode:="permitted", _
                 NoNode:="4", _
                 NeedAnswer:=True, _
-                Tip:="Remember that an explanation devised in hindsight won't suffice.", _
+                Tip:="Remember that an explanation devised in hindsight won't suffice." & "Whether or not a purpose included disclosure, or whether a disclosure is directly related to the purposeis a question of fact." & vbNewLine & "(Director of Human Rights Proceedings v Crampton [2015] NZHRRT 35 at [81-82])" & vbNewLine & "That makes it advisable to document the purpose for collecting, obtaining, or creating information, and to note the reasons for disclosing it.", _
+                Answer:="IPP 11(a)", _
+                ActionNo:=2
+                
+    CreateNode Name:="4", _
+                Question:="I have reasonable grounds for believing that the disclosure is directly related to the purpose for collecting the information because:", _
+                YesNode:="permitted", _
+                NoNode:="5", _
+                NeedAnswer:=False, _
+                Tip:="Whether or not a purpose included disclosure, or whether a disclosure is directly related to the purposeis a question of fact." & vbNewLine & "(Director of Human Rights Proceedings v Crampton [2015] NZHRRT 35 at [81-82])" & vbNewLine & "That makes it advisable to document the purpose for collecting, obtaining, or creating information, and to note the reasons for disclosing it.", _
+                Answer:="IPP 11(a)", _
+                ActionNo:=2
+                
+    CreateNode Name:="5", _
+                Question:="Is the disclosure to the individual concerned?", _
+                YesNode:="permitted", _
+                NoNode:="6", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="IPP 11(c)", _
+                ActionNo:=2
+                
+    CreateNode Name:="6", _
+                Question:="Is the disclosure authorised by the individual concerned?", _
+                YesNode:="permitted", _
+                NoNode:="7", _
+                NeedAnswer:=False, _
+                Tip:="How recent is the authorisation?" & vbNewLine & "Should a new authorisation be sought?", _
+                Answer:="IPP 11(d)", _
+                ActionNo:=2
+                
+    CreateNode Name:="7", _
+                Question:="Does the information come from a publicly available publication?", _
+                YesNode:="permitted", _
+                NoNode:="8", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="IPP 11(b)", _
+                ActionNo:=2
+
+    CreateNode Name:="8", _
+                Question:="Is it going to be used in a way that will indentify the individual?", _
+                YesNode:="9", _
+                NoNode:="permitted", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="IPP 11(h)(i)", _
+                ActionNo:=2
+
+    CreateNode Name:="9", _
+                Question:="Is it going to be used for statistical or research purpose?", _
+                YesNode:="10", _
+                NoNode:="permitted", _
+                NeedAnswer:=False, _
+                Tip:="Information does not have to be de-identified at point of disclosure, as long as the published research doesn't identify individuals.", _
                 Answer:="", _
                 ActionNo:=2
-    CreateNode Name:="4", _
-                Question:="4 I have reasonable grounds for believing that the disclosure is directly related to the purpose for collecting the information because:", _
+
+    CreateNode Name:="10", _
+                Question:="Will the published research identify individuals?", _
+                YesNode:="11", _
+                NoNode:="permitted", _
+                NeedAnswer:=False, _
+                Tip:="May need something here about what identification means...", _
+                Answer:="IPP 11(h)(ii)", _
+                ActionNo:=2
+
+    CreateNode Name:="11", _
+                Question:="Do the individual consent to the disclosure?", _
+                YesNode:="permitted", _
+                NoNode:="12", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="IPP 11(a)", _
+                ActionNo:=2
+
+    CreateNode Name:="12", _
+                Question:="Is disclosure part of the sale or disposition of a business as a going concern?", _
+                YesNode:="permitted", _
+                NoNode:="13", _
+                NeedAnswer:=False, _
+                Tip:="E.g. the sale of a retail business or a professional firm (e.g. law firm, accountancy) includes its customer list." & vbNewLine & " This exception DOES NOT permit:" & vbNewLine & Chr(149) & " Sale of a customer list without the business also being sold." & vbNewLine & Chr(149) & "sale of a customer list to defray debts in a receivership or liquidation.", _
+                Answer:="IPP 11(g)", _
+                ActionNo:=2
+
+    CreateNode Name:="13", _
+                Question:="Has the Privacy Commissioner authorised me the disclosure the information?", _
+                YesNode:="permitted", _
+                NoNode:="14", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="IPP 11(i)", _
+                ActionNo:=2
+
+    CreateNode Name:="14", _
+                Question:="Is disclosure necessary ot avoid prejudice to maintenance of the law?", _
+                YesNode:="17", _
+                NoNode:="17", _
+                NeedAnswer:=False, _
+                Tip:="Maintenance of the law includes:" & vbNewLine & Chr(149) & " Prevention - e.g." & vbNewLine & Chr(149) & " Detection - e.g. checking with an agency to see whether an employee has wrongfully accessed an information systems, to verify allegations made (Tan v NZ Police [2016] NZHRRT 32)" & vbNewLine & Chr(149) & " Investigation - e.g." & vbNewLine & Chr(149) & " Prosecution - e.g." & vbNewLine & Chr(149) & " Punishment - e.g. disclosure details of fines to Ministry of Justice collections unit for enforcement.", _
+                Answer:="", _
+                ActionNo:=0
+                
+    CreateNode Name:="17", _
+                Question:="The Law in issue is:", _
+                YesNode:="18", _
+                NoNode:="18", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="18", _
+                Question:="The law is enforced by:", _
+                YesNode:="19", _
+                NoNode:="19", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="19", _
+                Question:="This agency is a public sector agency.", _
+                YesNode:="15", _
+                NoNode:="20", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2
+
+    CreateNode Name:="15", _
+                Question:="I believe the disclosure is necessary because:", _
+                YesNode:="16", _
+                NoNode:="16", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="16", _
+                Question:="I have reasonable grounds for my belief because: ", _
+                YesNode:="permitted", _
+                NoNode:="20", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="IPP 11(e)(i)", _
+                ActionNo:=2
+                
+    CreateNode Name:="20", _
+                Question:="Is disclosure necessary for enforcement of a law imposing a percuniary penalty?", _
+                YesNode:="21", _
+                NoNode:="23", _
+                NeedAnswer:=False, _
+                Tip:="Pecuniary penalties are monetary penalties imposed by statue. They are intended to punish and deter contravention of the law. They may be issued in civil or criminal proceedings.", _
+                Answer:="", _
+                ActionNo:=2
+
+    CreateNode Name:="21", _
+                Question:="I believe the disclosure is necessary because:  ", _
+                YesNode:="22", _
+                NoNode:="22", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="22", _
+                Question:="I have reasonable grounds for my belief because: ", _
+                YesNode:="permitted", _
+                NoNode:="24", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="IPP 11(e)(ii)", _
+                ActionNo:=2
+
+    CreateNode Name:="23", _
+                Question:="There is no such law", _
+                YesNode:="24", _
+                NoNode:="24", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="24", _
+                Question:="Is disclosure necessary for the protection of the public revenue?", _
+                YesNode:="25", _
+                NoNode:="26", _
+                NeedAnswer:=False, _
+                Tip:="E.g. disclosure is to assess tax liabilities identify benefit fraud, enforce child support payments or payment of infringements or court fines.", _
+                Answer:="", _
+                ActionNo:=2
+
+    CreateNode Name:="25", _
+                Question:="The public revenue in issue is:", _
+                YesNode:="27", _
+                NoNode:="27", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="27", _
+                Question:="I believe the disclosure is necessary because:", _
+                YesNode:="28", _
+                NoNode:="28", _
+                NeedAnswer:=True, _
+                Tip:="  ", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="28", _
+                Question:="I have reasonable grounds for my belief because:", _
+                YesNode:="permitted", _
+                NoNode:="29", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="IPP 11(e)(iii)", _
+                ActionNo:=2
+
+    CreateNode Name:="26", _
+                Question:="The public revenue is not in issue:", _
+                YesNode:="29", _
+                NoNode:="29", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="29", _
+                Question:="Is the disclosure necessary for the conduct of proceedings before any court or tribunal?", _
+                YesNode:="30", _
+                NoNode:="34", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2
+
+    CreateNode Name:="30", _
+                Question:="The proceedings have started or are reasonable in contemplation", _
+                YesNode:="31", _
+                NoNode:="34", _
+                NeedAnswer:=False, _
+                Tip:="Reasonable in contemplation means[to come]...", _
+                Answer:="", _
+                ActionNo:=2
+
+
+    CreateNode Name:="31", _
+                Question:="The proceedings are:", _
+                YesNode:="32", _
+                NoNode:="32", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="32", _
+                Question:="I believe the disclosure is necessary because:", _
+                YesNode:="33", _
+                NoNode:="33", _
+                NeedAnswer:=True, _
+                Tip:="Necessary means 'needed or required' in the circumstances, not just 'desirable or expedient'." & vbNewLine & "However, 'needed or required' is something less than 'indispensible or essential'.", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="33", _
+                Question:="I have reasonable grounds for my belief because:", _
+                YesNode:="permitted", _
+                NoNode:="34", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="IPP 11(e)(iv)", _
+                ActionNo:=2
+
+    CreateNode Name:="34", _
+                Question:="Is disclosure necessary to prevent or lessen a serious threat?", _
+                YesNode:="35.1", _
+                NoNode:="35.1", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="35.1", _
+                Question:="Is it a threat to public health or public safety?", _
+                YesNode:="36", _
+                NoNode:="35.2", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2
+
+    CreateNode Name:="35.2", _
+                Question:="Is it a threat to a specific person?", _
+                YesNode:="36", _
+                NoNode:="exit", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2
+
+    CreateNode Name:="36", _
+                Question:="Is it a serious threat?", _
+                YesNode:="37", _
+                NoNode:="exit", _
+                NeedAnswer:=False, _
+                Tip:="A 'serious' threat is one that the agency reasonably believes is serious based on three factors:", _
+                Answer:="", _
+                ActionNo:=2
+
+    CreateNode Name:="37", _
+                Question:="How likely is it that the threat will come to pass?", _
+                YesNode:="38", _
+                NoNode:="38", _
+                NeedAnswer:=True, _
+                Tip:="Is the threat very likely to occur? Is it possible, or is there only a remote chance?", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="38", _
+                Question:="How serious will the consequences be if the threat comes to pass?", _
+                YesNode:="39", _
+                NoNode:="39", _
+                NeedAnswer:=True, _
+                Tip:="Will the consequences be felt by one person or many?" & vbNewLine & "Is anyone likely to die or be injured as a result of the threat?" & vbNewLine & "Are people likely to have their identities, financial details, or money stolen as a result of the threat?", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="39", _
+                Question:="When is the threat likely to come to pass?", _
+                YesNode:="40", _
+                NoNode:="40", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=0
+
+    CreateNode Name:="40", _
+                Question:="I have reasonable grounds for my assessment that the threat is serious because: ", _
+                YesNode:="41", _
+                NoNode:="eixt", _
+                NeedAnswer:=True, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2
+
+    CreateNode Name:="41", _
+                Question:="I believe the disclosure is necessary because: ", _
+                YesNode:="42", _
+                NoNode:="42", _
+                NeedAnswer:=True, _
+                Tip:="Necessary means 'needed or required' in the circumstances, not just 'desirable or expedient'." & vbNewLine & "However, 'needed or required' is something less than 'indispensible or essential'.", _
+                Answer:="", _
+                ActionNo:=0
+                
+    CreateNode Name:="42", _
+                Question:="I have reasonable grounds for my belief because: ", _
                 YesNode:="permitted", _
                 NoNode:="exit", _
                 NeedAnswer:=True, _
-                Tip:="Remember that an explanation devised in hindsight won't suffice.", _
-                Answer:="", _
+                Tip:="", _
+                Answer:="IPP 11(f)", _
                 ActionNo:=2
-            
-    '### Permitting and Exit node
-    CreateNode Name:="permitted", _
-                Question:="Permitting!", _
-                YesNode:="Permitting", _
-                NoNode:="Permitting", _
-                NeedAnswer:=False, _
-                Tip:="", _
-                Answer:="", _
-                ActionNo:=0
-    CreateNode Name:="exit", _
-                Question:="Exiting!", _
-                YesNode:="exit", _
-                NoNode:="exit", _
-                NeedAnswer:=False, _
-                Tip:="", _
-                Answer:="", _
-                ActionNo:=0
 End Function
 
-Function CreateDocument(final As Boolean)
+Function CreateDocument(stage As String)
 'create document based on selections
     Dim doc As Document
     Set doc = ActiveDocument
-    
-    If final Then
-        doc.Content.Delete
-        doc.Paragraphs(1).Range.Text = "Your selection: " & sSelectedCaption
+    fmNodes.Hide
+    Dim bm As Bookmark
+    Dim rg As Range
+    Set rg = doc.Paragraphs.Last.Range
+    If stage = "1" Then
+    'finish at 1st pop up
+        rg.Text = sSelectedCaption & vbNewLine & vbTab & "Yes." & vbNewLine & "Your application is permitted."
     Else
-        
+    'rest decision tree, spit out all questions and answer/choices
+        Dim nd As oNode
+        Set nd = GetNodeByName(FirstNode)
+        Do While nd.Name <> "exit" And nd.Name <> "permitted"
+            doc.Paragraphs.Add
+            doc.Paragraphs.Last.Range.Text = nd.sQuestion '& vbNewLine & vbTab & IIf(nd.ActionNo > 0, IIf(nd.YesNo = "y", "Yes: ", "No."), "") & nd.sAnswer
+            doc.Paragraphs.Last.Range.Style = QuestionStyle
+            If nd.ActionNo > 0 Then
+                doc.Paragraphs.Add
+                doc.Paragraphs.Last.Range.Text = IIf(nd.ActionNo > 0, IIf(nd.YesNo = "y", "Yes: ", "No."), "")
+                doc.Paragraphs.Last.Range.Style = AnswerStyle
+            End If
+            If nd.NeedAnswer Then
+                doc.Paragraphs.Add
+                doc.Paragraphs.Last.Range.Style = AnswerStyle
+                Set rg = doc.AttachedTemplate.BuildingBlockEntries("IPP_AnswerBox_Blank").Insert(doc.Paragraphs.Last.Range, True)
+
+                If nd.sAnswer = "" Then
+                    If rg.Tables.Count > 0 Then
+                        rg.Tables(1).Cell(1, 1).Range.Text = PlaceHolderText
+                    End If
+                ElseIf nd.sAnswer <> DefaultAnswerText And Left(nd.sAnswer, 3) <> "IPP" Then
+                    If rg.Tables.Count > 0 Then
+                        rg.Tables(1).Cell(1, 1).Range.Text = nd.sAnswer
+                    End If
+                End If
+                rg.Editors.Add wdEditorEveryone
+            End If
+            Set nd = GetNodeByName(nd.NextNode)
+        Loop
+        doc.Paragraphs.Add
+        Set rg = doc.Content
+        rg.Collapse wdCollapseEnd
+        If nd.Name = "exit" Then
+            rg.Text = "Your application is not permitted."
+        Else
+            rg.Text = "Your choice(s) indicate that:  Disclosure is permitted (" & GetNodeByName("permitted").sAnswer & ")"
+        End If
     End If
+    doc.Protect wdAllowOnlyReading
 End Function
 
 Function CreateNode(Name As String, Question As String, YesNode As String, _
@@ -95,6 +507,7 @@ Function CreateNode(Name As String, Question As String, YesNode As String, _
         .YesNo = IIf(YesNo = "", "", YesNo)
         .NextNode = IIf(NextNode = "", "", NextNode)
     End With
+    
     Set CreateNode = nd
     ReDim Preserve aryNodes(aryNodeCnt)
     Set aryNodes(aryNodeCnt) = nd
@@ -112,15 +525,16 @@ Function LoadNode(nodeName As String)
     Case Else
         Dim nd As New oNode
         Set nd = GetNodeByName(nodeName)
-        fmNodes.lbQuestion.Caption = nd.sQuestion
-        fmNodes.tbAnswer.Text = nd.sAnswer
-        fmNodes.tbAnswer.Enabled = IIf(nd.NeedAnswer, True, False)  'disable textbox if no text answer needed.
-        fmNodes.lbTitle.Enabled = IIf(nd.NeedAnswer, True, False)
+        fmNodes.lbQuestion.Caption = nd.Name & " " & nd.sQuestion '###put node name before question text
+        fmNodes.tbAnswer.Text = IIf(nd.NeedAnswer, DefaultAnswerText, "") 'nd.sAnswer
+        fmNodes.tbAnswer.Enabled = False 'IIf(nd.NeedAnswer, True, False)  'disable textbox if no text answer needed.
+        fmNodes.lbTitle.Enabled = False 'IIf(nd.NeedAnswer, True, False)
         If nd.ActionNo = 0 Then
             fmNodes.fmActions.Enabled = False
             fmNodes.obYes.Enabled = False
             fmNodes.obNo.Enabled = False
             sNextNode = nd.YesNode     'if no choice needed, then link to 'YesNode' by default
+            nd.NextNode = nd.YesNode
         Else
             fmNodes.fmActions.Enabled = True
             fmNodes.obYes.Enabled = True
@@ -146,7 +560,37 @@ Function LoadNode(nodeName As String)
         sHelpText = nd.sTip
         fmNodes.btnHelp.Visible = IIf(sHelpText = "", False, True)
         sCurrent = nodeName
+        'set text of permitted/exit node
+        If nd.YesNode = "permitted" Or nd.NoNode = "permitted" Then
+            GetNodeByName("permitted").sAnswer = nd.sAnswer
+        End If
+        'set text in answer text box
+        If nd.sAnswer <> "" And Left(nd.sAnswer, 3) <> "IPP" Then
+            fmNodes.tbAnswer.Text = DefaultAnswerText 'nd.sAnswer
+        End If
     End Select
+        '###set button capiton
+    If nodeName = "exit" Or nodeName = "permitted" Then
+        fmNodes.btnNext.Caption = "Finish"
+        fmNodes.tbAnswer.Enabled = False
+        fmNodes.lbTitle.Enabled = False
+        fmNodes.fmActions.Enabled = False
+        fmNodes.obYes.Enabled = False
+        fmNodes.obNo.Enabled = False
+    Else
+        fmNodes.btnNext.Caption = "Next"
+    End If
+    'set pop up form title
+    If IsNumeric(nodeName) Then
+        If nodeName < 14 Then
+            fmNodes.Caption = "Applying the IPP exceptions - Purpose of disclosure"
+        ElseIf nodeName < 34 Then
+            fmNodes.Caption = "Applying the IPP exceptions - Maintenance of the law and related exceptions"
+        Else
+            fmNodes.Caption = "Applying the IPP exceptions - Serious threat"
+        End If
+    End If
+
 End Function
 
 Function GotAction() As Boolean
@@ -161,6 +605,7 @@ End Function
 Function GetNodeByName(s As String) As oNode
     Dim nd As New oNode
     Set GetNodeByName = Nothing
+    Dim i As Integer
     For i = 0 To UBound(aryNodes)
         Set nd = aryNodes(i)
         If nd.Name = s Then

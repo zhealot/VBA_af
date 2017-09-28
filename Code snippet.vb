@@ -5,7 +5,7 @@ ThisDocument.AttachedTemplate.BuildingBlockEntries.Add Name:=Left(bbName, 32), _
 													  Range:=rg, _
 													  InsertOptions:=wdInsertContent
 
-doc.AttachedTemplate.BuildingBlockEntries(Blocks(i).Name).Insert rg, True
+doc.AttachedTemplate.BuildingBlockEntries(i).Insert rg, True
 
     With Application.FileDialog(msoFileDialogFilePicker)
         .AllowMultiSelect = False
@@ -17,6 +17,18 @@ doc.AttachedTemplate.BuildingBlockEntries(Blocks(i).Name).Insert rg, True
         .ButtonName = "OK"
         If .Show = -1 Then
             sFilename = .SelectedItems(1)
+        End If
+    End With
+
+	'Open save as dialog box and set default file name
+    With Application.FileDialog(msoFileDialogSaveAs)
+        .AllowMultiSelect = False
+        .Title = "Save as..."
+        .InitialFileName = Time
+        .ButtonName = "OK"
+        If .Show <> 0 Then
+            Debug.Print .SelectedItems(1)
+            'ThisDocument.SaveAs2 .SelectedItems(1)
         End If
     End With
 
