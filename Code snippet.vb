@@ -7,6 +7,7 @@ ThisDocument.AttachedTemplate.BuildingBlockEntries.Add Name:=Left(bbName, 32), _
 
 doc.AttachedTemplate.BuildingBlockEntries(i).Insert rg, True
 
+	'Open file select dialog box
     With Application.FileDialog(msoFileDialogFilePicker)
         .AllowMultiSelect = False
         .Title = "Select Autotext document."

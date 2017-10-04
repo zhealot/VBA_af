@@ -18,6 +18,10 @@ Public NoNode As String     'name of the node when 'No' selected
 Public PreviousNode As String   'previous node to trace back
 Public NextNode As String
 Public YesNo As String      'store Yes/No selection, could be 'y' 'n' or blank(stands for no choice made)
+Public YesTextBox As Boolean   'add text box if yes
+Public NoTextBox As Boolean    'add text box if no
+Public YesText As String        'text to show for ending yes choice
+Public NoText As String         'text to show for ending no choice
 
 Private Sub Class_Initialize()
     'populate controls in form

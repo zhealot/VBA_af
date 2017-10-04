@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fmNodes 
    Caption         =   "AISA IPP Document - Applying exceptions"
-   ClientHeight    =   5250
+   ClientHeight    =   4635
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   8580
@@ -46,13 +46,13 @@ End Sub
 Function ValidateForm() As Boolean
 'check if controls/fields have been filled
     ValidateForm = False
-    If GetNodeByName(sCurrent).NeedAnswer And fmNodes.tbAnswer.Text = "" And obYes.Value Then
-        MsgBox "Please give an answer to the question."
-        If fmNodes.tbAnswer.Enabled Then
-            fmNodes.tbAnswer.SetFocus
-        End If
-        Exit Function
-    End If
+'    If GetNodeByName(sCurrent).NeedAnswer And fmNodes.lbAnswer.Caption = "" And obYes.Value Then
+'        MsgBox "Please give an answer to the question."
+'        If fmNodes.tbAnswer.Enabled Then
+'            fmNodes.tbAnswer.SetFocus
+'        End If
+'        Exit Function
+'    End If
     If GetNodeByName(sCurrent).ActionNo > 0 And Not GotAction Then
         MsgBox "Please choose an answer."
         Exit Function
@@ -87,14 +87,12 @@ Public Sub YesNo_Click()
             GetNodeByName(GetNodeByName(sCurrent).YesNode).PreviousNode = sCurrent
             GetNodeByName(sCurrent).YesNo = "y"
             GetNodeByName(sCurrent).NextNode = GetNodeByName(sCurrent).YesNode
-            fmNodes.tbAnswer.Enabled = False 'IIf(GetNodeByName(sCurrent).NeedAnswer, True, False)
-            fmNodes.lbTitle.Enabled = False 'IIf(GetNodeByName(sCurrent).NeedAnswer, True, False)
+            fmNodes.lbAnswer.Enabled = True 'False 'IIf(GetNodeByName(sCurrent).NeedAnswer, True, False)
         ElseIf obNo.Value Then
             GetNodeByName(GetNodeByName(sCurrent).NoNode).PreviousNode = sCurrent
             GetNodeByName(sCurrent).YesNo = "n"
             GetNodeByName(sCurrent).NextNode = GetNodeByName(sCurrent).NoNode
-            fmNodes.tbAnswer.Enabled = False
-            fmNodes.lbTitle.Enabled = False
+            fmNodes.lbAnswer.Enabled = True
         Else
             GetNodeByName(sCurrent).YesNo = ""
             GetNodeByName(sCurrent).NextNode = ""

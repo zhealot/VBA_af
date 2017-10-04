@@ -3,7 +3,7 @@ Attribute VB_Name = "Module1"
 ' Developed for DIA
 ' Created by:       Allfields Customised Solutions Limited
 ' Contact Info:     hello@allfields.co.nz, 04 978 7101
-' Date:             September 2017
+' Date:             October 2017
 ' Description:      Implement decision making tree for IPP
 '-----------------------------------------------------------------------------
 
@@ -20,8 +20,8 @@ Public Const DefaultAnswerText = "Give your answer later."
 Public Const PlaceHolderText = "Space to write more"
 Public Const QuestionStyle = "Question" 'Word style name for question
 Public Const AnswerStyle = "Answer"     'Word style name for yes/no answer
-Public Const FirstNode = "1"            'name of node to start with
-
+Public Const FirstNode = "51"            'name of node to start with
+Public Const PreFixString = "Your choice(s) indicate that:  Disclosure is permitted ("  'prefix wording for IPP exception clauses
 
 Function InitialNodes()
     ReDim aryNodes(0)
@@ -66,62 +66,72 @@ Function InitialNodes()
                 
     CreateNode Name:="3", _
                 Question:="I have reasonable grounds to believe the disclosure is a purpose for collecting the information because:", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="4", _
                 NeedAnswer:=True, _
                 Tip:="Remember that an explanation devised in hindsight won't suffice." & "Whether or not a purpose included disclosure, or whether a disclosure is directly related to the purposeis a question of fact." & vbNewLine & "(Director of Human Rights Proceedings v Crampton [2015] NZHRRT 35 at [81-82])" & vbNewLine & "That makes it advisable to document the purpose for collecting, obtaining, or creating information, and to note the reasons for disclosing it.", _
-                Answer:="IPP 11(a)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesText:=PreFixString & "IPP 11(a)"
                 
     CreateNode Name:="4", _
                 Question:="I have reasonable grounds for believing that the disclosure is directly related to the purpose for collecting the information because:", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="5", _
                 NeedAnswer:=False, _
                 Tip:="Whether or not a purpose included disclosure, or whether a disclosure is directly related to the purposeis a question of fact." & vbNewLine & "(Director of Human Rights Proceedings v Crampton [2015] NZHRRT 35 at [81-82])" & vbNewLine & "That makes it advisable to document the purpose for collecting, obtaining, or creating information, and to note the reasons for disclosing it.", _
-                Answer:="IPP 11(a)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesText:=PreFixString & "IPP 11(a)"
                 
     CreateNode Name:="5", _
                 Question:="Is the disclosure to the individual concerned?", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="6", _
                 NeedAnswer:=False, _
                 Tip:="", _
-                Answer:="IPP 11(c)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesTextBox:=True, _
+                YesText:=PreFixString & "IPP 11(c)"
                 
     CreateNode Name:="6", _
                 Question:="Is the disclosure authorised by the individual concerned?", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="7", _
                 NeedAnswer:=False, _
                 Tip:="How recent is the authorisation?" & vbNewLine & "Should a new authorisation be sought?", _
-                Answer:="IPP 11(d)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesTextBox:=True, _
+                YesText:=PreFixString & "IPP 11(d)"
                 
     CreateNode Name:="7", _
                 Question:="Does the information come from a publicly available publication?", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="8", _
                 NeedAnswer:=False, _
                 Tip:="", _
-                Answer:="IPP 11(b)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesTextBox:=True, _
+                YesText:=PreFixString & "IPP 11(b)"
 
     CreateNode Name:="8", _
                 Question:="Is it going to be used in a way that will indentify the individual?", _
                 YesNode:="9", _
-                NoNode:="permitted", _
+                NoNode:="54", _
                 NeedAnswer:=False, _
                 Tip:="", _
-                Answer:="IPP 11(h)(i)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                NoTextBox:=True, _
+                NoText:=PreFixString & "IPP 11(h)(i)"
 
     CreateNode Name:="9", _
                 Question:="Is it going to be used for statistical or research purpose?", _
                 YesNode:="10", _
-                NoNode:="permitted", _
+                NoNode:="54", _
                 NeedAnswer:=False, _
                 Tip:="Information does not have to be de-identified at point of disclosure, as long as the published research doesn't identify individuals.", _
                 Answer:="", _
@@ -130,41 +140,49 @@ Function InitialNodes()
     CreateNode Name:="10", _
                 Question:="Will the published research identify individuals?", _
                 YesNode:="11", _
-                NoNode:="permitted", _
+                NoNode:="54", _
                 NeedAnswer:=False, _
                 Tip:="May need something here about what identification means...", _
-                Answer:="IPP 11(h)(ii)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                NoTextBox:=True, _
+                NoText:=PreFixString & "IPP 11(h)(ii)"
 
     CreateNode Name:="11", _
                 Question:="Do the individual consent to the disclosure?", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="12", _
                 NeedAnswer:=False, _
                 Tip:="", _
-                Answer:="IPP 11(a)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesTextBox:=True, _
+                YesText:=PreFixString & "IPP 11(a)"
 
     CreateNode Name:="12", _
                 Question:="Is disclosure part of the sale or disposition of a business as a going concern?", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="13", _
                 NeedAnswer:=False, _
                 Tip:="E.g. the sale of a retail business or a professional firm (e.g. law firm, accountancy) includes its customer list." & vbNewLine & " This exception DOES NOT permit:" & vbNewLine & Chr(149) & " Sale of a customer list without the business also being sold." & vbNewLine & Chr(149) & "sale of a customer list to defray debts in a receivership or liquidation.", _
-                Answer:="IPP 11(g)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesTextBox:=True, _
+                YesText:=PreFixString & "IPP 11(g)"
 
     CreateNode Name:="13", _
                 Question:="Has the Privacy Commissioner authorised me the disclosure the information?", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="14", _
                 NeedAnswer:=False, _
                 Tip:="", _
-                Answer:="IPP 11(i)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesTextBox:=True, _
+                YesText:=PreFixString & "IPP 11(i)"
 
     CreateNode Name:="14", _
-                Question:="Is disclosure necessary ot avoid prejudice to maintenance of the law?", _
+                Question:="Is disclosure necessary to avoid prejudice to maintenance of the law?", _
                 YesNode:="17", _
                 NoNode:="17", _
                 NeedAnswer:=False, _
@@ -210,12 +228,13 @@ Function InitialNodes()
 
     CreateNode Name:="16", _
                 Question:="I have reasonable grounds for my belief because: ", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="20", _
                 NeedAnswer:=True, _
                 Tip:="", _
-                Answer:="IPP 11(e)(i)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesText:=PreFixString & "IPP 11(e)(i)"
                 
     CreateNode Name:="20", _
                 Question:="Is disclosure necessary for enforcement of a law imposing a percuniary penalty?", _
@@ -237,12 +256,13 @@ Function InitialNodes()
 
     CreateNode Name:="22", _
                 Question:="I have reasonable grounds for my belief because: ", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="24", _
                 NeedAnswer:=False, _
                 Tip:="", _
-                Answer:="IPP 11(e)(ii)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesText:=PreFixString & "IPP 11(e)(ii)"
 
     CreateNode Name:="23", _
                 Question:="There is no such law", _
@@ -282,12 +302,13 @@ Function InitialNodes()
 
     CreateNode Name:="28", _
                 Question:="I have reasonable grounds for my belief because:", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="29", _
                 NeedAnswer:=False, _
                 Tip:="", _
-                Answer:="IPP 11(e)(iii)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesText:=PreFixString & "IPP 11(e)(iii)"
 
     CreateNode Name:="26", _
                 Question:="The public revenue is not in issue:", _
@@ -337,12 +358,13 @@ Function InitialNodes()
 
     CreateNode Name:="33", _
                 Question:="I have reasonable grounds for my belief because:", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="34", _
                 NeedAnswer:=True, _
                 Tip:="", _
-                Answer:="IPP 11(e)(iv)", _
-                ActionNo:=2
+                Answer:="", _
+                ActionNo:=2, _
+                YesText:=PreFixString & "IPP 11(e)(iv)"
 
     CreateNode Name:="34", _
                 Question:="Is disclosure necessary to prevent or lessen a serious threat?", _
@@ -369,7 +391,8 @@ Function InitialNodes()
                 NeedAnswer:=False, _
                 Tip:="", _
                 Answer:="", _
-                ActionNo:=2
+                ActionNo:=2, _
+                NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure."
 
     CreateNode Name:="36", _
                 Question:="Is it a serious threat?", _
@@ -378,7 +401,8 @@ Function InitialNodes()
                 NeedAnswer:=False, _
                 Tip:="A 'serious' threat is one that the agency reasonably believes is serious based on three factors:", _
                 Answer:="", _
-                ActionNo:=2
+                ActionNo:=2, _
+                NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure."
 
     CreateNode Name:="37", _
                 Question:="How likely is it that the threat will come to pass?", _
@@ -414,7 +438,8 @@ Function InitialNodes()
                 NeedAnswer:=True, _
                 Tip:="", _
                 Answer:="", _
-                ActionNo:=2
+                ActionNo:=2, _
+                NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure."
 
     CreateNode Name:="41", _
                 Question:="I believe the disclosure is necessary because: ", _
@@ -427,12 +452,77 @@ Function InitialNodes()
                 
     CreateNode Name:="42", _
                 Question:="I have reasonable grounds for my belief because: ", _
-                YesNode:="permitted", _
+                YesNode:="54", _
                 NoNode:="exit", _
                 NeedAnswer:=True, _
                 Tip:="", _
-                Answer:="IPP 11(f)", _
+                Answer:="", _
+                ActionNo:=2, _
+                YesText:=PreFixString & "IPP 11(f)", _
+                NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure (e.g. AISA, Schedule 4A or 5 entry, bespoke legislation."
+    
+    CreateNode Name:="51", _
+                Question:="Does legislation other than the Privacy Act prevent or regulate disclosure?", _
+                YesNode:="52", _
+                NoNode:="53", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
                 ActionNo:=2
+    
+    CreateNode Name:="52", _
+                Question:="Is information subject to Tax Administration Act Senior Courts Act, District Courts Act, or Births, Deaths, Marriages, and Relationships Registration Act?", _
+                YesNode:="exit", _
+                NoNode:="exit", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2, _
+                YesText:="AISA required", _
+                NoText:="Comply with the law (or seek an amendment)"
+                
+    CreateNode Name:="53", _
+                Question:="Do any of the IPP exceptions clearly apply?", _
+                YesNode:="1", _
+                NoNode:="exit", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2, _
+                NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure (e.g. AISA, Schedule 4A or 5 entry, bespoke legislation."
+    
+    CreateNode Name:="54", _
+                Question:="What are the threshold criteria? For bulk or automated releases, can the threshold criteria be applied automatically?", _
+                YesNode:="55", _
+                NoNode:="permitted", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2, _
+                NoText:="Case by case disclosure will be required."
+                
+    CreateNode Name:="55", _
+                Question:="Can the information at issue be served from other information, so disclosure is limited to the relevant information?", _
+                YesNode:="56", _
+                NoNode:="", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2, _
+                NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure (e.g. AISA, Schedule 4A or 5 entry, bespoke legislation."
+    
+    '###
+    CreateNode Name:="56", _
+                Question:="Is there a risk that the information disclosure could cause harm to an individual?", _
+                YesNode:="exit", _
+                NoNode:="permitted", _
+                NeedAnswer:=False, _
+                Tip:="", _
+                Answer:="", _
+                ActionNo:=2, _
+                YesText:="Disclosure in accordance with IPP exceptions", _
+                NoText:="Reduce risk by building in natural justice (for adverse action) and safeguards to improve accuracy"
+                
 End Function
 
 Function CreateDocument(stage As String)
@@ -456,14 +546,19 @@ Function CreateDocument(stage As String)
             doc.Paragraphs.Last.Range.Style = QuestionStyle
             If nd.ActionNo > 0 Then
                 doc.Paragraphs.Add
-                doc.Paragraphs.Last.Range.Text = IIf(nd.ActionNo > 0, IIf(nd.YesNo = "y", "Yes: ", "No."), "")
                 doc.Paragraphs.Last.Range.Style = AnswerStyle
+                doc.Paragraphs.Last.Range.Text = IIf(nd.ActionNo > 0, IIf(nd.YesNo = "y", "Yes: ", "No."), "")
             End If
-            If nd.NeedAnswer Then
+            'for those needs a statement before next question
+            If (nd.YesNo = "y" And nd.YesText <> "") Or (nd.YesNo = "n" And nd.NoText <> "") Then
+                doc.Paragraphs.Add
+                doc.Paragraphs.Last.Style = AnswerStyle
+                doc.Paragraphs.Last.Range.Text = IIf(nd.YesNo = "y", nd.YesText, nd.NoText)
+            End If
+            If nd.NeedAnswer Or (nd.YesNo = "y" And nd.YesTextBox) Or (nd.YesNo = "n" And nd.NoTextBox) Then
                 doc.Paragraphs.Add
                 doc.Paragraphs.Last.Range.Style = AnswerStyle
                 Set rg = doc.AttachedTemplate.BuildingBlockEntries("IPP_AnswerBox_Blank").Insert(doc.Paragraphs.Last.Range, True)
-
                 If nd.sAnswer = "" Then
                     If rg.Tables.Count > 0 Then
                         rg.Tables(1).Cell(1, 1).Range.Text = PlaceHolderText
@@ -483,7 +578,7 @@ Function CreateDocument(stage As String)
         If nd.Name = "exit" Then
             rg.Text = "Your application is not permitted."
         Else
-            rg.Text = "Your choice(s) indicate that:  Disclosure is permitted (" & GetNodeByName("permitted").sAnswer & ")"
+            rg.Text = "Your application is permitted."
         End If
     End If
     doc.Protect wdAllowOnlyReading
@@ -491,7 +586,10 @@ End Function
 
 Function CreateNode(Name As String, Question As String, YesNode As String, _
                     NoNode As String, NeedAnswer As Boolean, Tip As String, _
-                    Answer As String, ActionNo As Integer, Optional PreviousNode As String = "", Optional NextNode As String = "", Optional YesNo As String = "") As oNode
+                    Answer As String, ActionNo As Integer, Optional PreviousNode As String = "", _
+                    Optional NextNode As String = "", Optional YesNo As String = "", _
+                    Optional YesTextBox As Boolean = False, Optional NoTextBox As Boolean = False, _
+                    Optional YesText As String = "", Optional NoText As String = "") As oNode
 'construction oNode object
     Dim nd As New oNode
     With nd
@@ -506,6 +604,10 @@ Function CreateNode(Name As String, Question As String, YesNode As String, _
         .PreviousNode = IIf(PreviousNode = "", "", PreviousNode)
         .YesNo = IIf(YesNo = "", "", YesNo)
         .NextNode = IIf(NextNode = "", "", NextNode)
+        .YesTextBox = YesTextBox
+        .NoTextBox = NoTextBox
+        .YesText = YesText
+        .NoText = NoText
     End With
     
     Set CreateNode = nd
@@ -526,9 +628,9 @@ Function LoadNode(nodeName As String)
         Dim nd As New oNode
         Set nd = GetNodeByName(nodeName)
         fmNodes.lbQuestion.Caption = nd.Name & " " & nd.sQuestion '###put node name before question text
-        fmNodes.tbAnswer.Text = IIf(nd.NeedAnswer, DefaultAnswerText, "") 'nd.sAnswer
-        fmNodes.tbAnswer.Enabled = False 'IIf(nd.NeedAnswer, True, False)  'disable textbox if no text answer needed.
-        fmNodes.lbTitle.Enabled = False 'IIf(nd.NeedAnswer, True, False)
+        fmNodes.lbAnswer.Caption = IIf(nd.NeedAnswer, DefaultAnswerText, "") 'nd.sAnswer
+        fmNodes.lbAnswer.Enabled = True 'IIf(nd.NeedAnswer, True, False)  'disable textbox if no text answer needed.
+        'fmNodes.lbTitle.Enabled = False 'IIf(nd.NeedAnswer, True, False)
         If nd.ActionNo = 0 Then
             fmNodes.fmActions.Enabled = False
             fmNodes.obYes.Enabled = False
@@ -560,20 +662,29 @@ Function LoadNode(nodeName As String)
         sHelpText = nd.sTip
         fmNodes.btnHelp.Visible = IIf(sHelpText = "", False, True)
         sCurrent = nodeName
-        'set text of permitted/exit node
-        If nd.YesNode = "permitted" Or nd.NoNode = "permitted" Then
-            GetNodeByName("permitted").sAnswer = nd.sAnswer
-        End If
+        'set text of permitted / exit node
+'        If nd.YesText <> "" Then
+'            GetNodeByName(nd.YesNode).sAnswer = nd.YesText
+'        End If
+'        If nd.NoText <> "" Then
+'            GetNodeByName(nd.NoNode).sAnswer = nd.NoText
+'        End If
+        
+'        If nd.YesNode = "permitted" Or nd.NoNode = "permitted" Then
+'            GetNodeByName("permitted").sAnswer = nd.YesText
+'        End If
+'        If nd.YesNode = "exit" Or nd.NoNode = "exit" Then
+'        End If
+
         'set text in answer text box
         If nd.sAnswer <> "" And Left(nd.sAnswer, 3) <> "IPP" Then
-            fmNodes.tbAnswer.Text = DefaultAnswerText 'nd.sAnswer
+            fmNodes.lbAnswer.Caption = DefaultAnswerText 'nd.sAnswer
         End If
     End Select
-        '###set button capiton
+    '###set button capiton
     If nodeName = "exit" Or nodeName = "permitted" Then
         fmNodes.btnNext.Caption = "Finish"
-        fmNodes.tbAnswer.Enabled = False
-        fmNodes.lbTitle.Enabled = False
+        fmNodes.lbAnswer.Enabled = False
         fmNodes.fmActions.Enabled = False
         fmNodes.obYes.Enabled = False
         fmNodes.obNo.Enabled = False

@@ -8,5 +8,5 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Private Sub Document_New()
-    frmMain.Show
+    fmWelcome.Show
 End Sub
