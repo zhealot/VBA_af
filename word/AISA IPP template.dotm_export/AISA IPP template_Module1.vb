@@ -72,17 +72,17 @@ Function InitialNodes()
                 Tip:="Remember that an explanation devised in hindsight won't suffice." & "Whether or not a purpose included disclosure, or whether a disclosure is directly related to the purposeis a question of fact." & vbNewLine & "(Director of Human Rights Proceedings v Crampton [2015] NZHRRT 35 at [81-82])" & vbNewLine & "That makes it advisable to document the purpose for collecting, obtaining, or creating information, and to note the reasons for disclosing it.", _
                 Answer:="", _
                 ActionNo:=2, _
-                YesText:=PreFixString & "IPP 11(a)"
+                YesText:=PreFixString & "IPP 11(a))"
                 
     CreateNode Name:="4", _
                 Question:="I have reasonable grounds for believing that the disclosure is directly related to the purpose for collecting the information because:", _
                 YesNode:="54", _
                 NoNode:="5", _
-                NeedAnswer:=False, _
+                NeedAnswer:=True, _
                 Tip:="Whether or not a purpose included disclosure, or whether a disclosure is directly related to the purposeis a question of fact." & vbNewLine & "(Director of Human Rights Proceedings v Crampton [2015] NZHRRT 35 at [81-82])" & vbNewLine & "That makes it advisable to document the purpose for collecting, obtaining, or creating information, and to note the reasons for disclosing it.", _
                 Answer:="", _
                 ActionNo:=2, _
-                YesText:=PreFixString & "IPP 11(a)"
+                YesText:=PreFixString & "IPP 11(a))"
                 
     CreateNode Name:="5", _
                 Question:="Is the disclosure to the individual concerned?", _
@@ -93,7 +93,7 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=2, _
                 YesTextBox:=True, _
-                YesText:=PreFixString & "IPP 11(c)"
+                YesText:=PreFixString & "IPP 11(c))"
                 
     CreateNode Name:="6", _
                 Question:="Is the disclosure authorised by the individual concerned?", _
@@ -104,7 +104,7 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=2, _
                 YesTextBox:=True, _
-                YesText:=PreFixString & "IPP 11(d)"
+                YesText:=PreFixString & "IPP 11(d))"
                 
     CreateNode Name:="7", _
                 Question:="Does the information come from a publicly available publication?", _
@@ -115,7 +115,7 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=2, _
                 YesTextBox:=True, _
-                YesText:=PreFixString & "IPP 11(b)"
+                YesText:=PreFixString & "IPP 11(b))"
 
     CreateNode Name:="8", _
                 Question:="Is it going to be used in a way that will indentify the individual?", _
@@ -126,8 +126,9 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=2, _
                 NoTextBox:=True, _
-                NoText:=PreFixString & "IPP 11(h)(i)"
-
+                NoText:=PreFixString & "IPP 11(h)(i))"
+    
+    '### this node needs a 'No' branch
     CreateNode Name:="9", _
                 Question:="Is it going to be used for statistical or research purpose?", _
                 YesNode:="10", _
@@ -135,7 +136,9 @@ Function InitialNodes()
                 NeedAnswer:=False, _
                 Tip:="Information does not have to be de-identified at point of disclosure, as long as the published research doesn't identify individuals.", _
                 Answer:="", _
-                ActionNo:=2
+                ActionNo:=2, _
+                NoTextBox:=True, _
+                NoText:=PreFixString & "IPP 11())"
 
     CreateNode Name:="10", _
                 Question:="Will the published research identify individuals?", _
@@ -146,7 +149,7 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=2, _
                 NoTextBox:=True, _
-                NoText:=PreFixString & "IPP 11(h)(ii)"
+                NoText:=PreFixString & "IPP 11(h)(ii))"
 
     CreateNode Name:="11", _
                 Question:="Do the individual consent to the disclosure?", _
@@ -157,7 +160,7 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=2, _
                 YesTextBox:=True, _
-                YesText:=PreFixString & "IPP 11(a)"
+                YesText:=PreFixString & "IPP 11(a))"
 
     CreateNode Name:="12", _
                 Question:="Is disclosure part of the sale or disposition of a business as a going concern?", _
@@ -168,7 +171,7 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=2, _
                 YesTextBox:=True, _
-                YesText:=PreFixString & "IPP 11(g)"
+                YesText:=PreFixString & "IPP 11(g))"
 
     CreateNode Name:="13", _
                 Question:="Has the Privacy Commissioner authorised me the disclosure the information?", _
@@ -179,7 +182,7 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=2, _
                 YesTextBox:=True, _
-                YesText:=PreFixString & "IPP 11(i)"
+                YesText:=PreFixString & "IPP 11(i))"
 
     CreateNode Name:="14", _
                 Question:="Is disclosure necessary to avoid prejudice to maintenance of the law?", _
@@ -234,7 +237,7 @@ Function InitialNodes()
                 Tip:="", _
                 Answer:="", _
                 ActionNo:=2, _
-                YesText:=PreFixString & "IPP 11(e)(i)"
+                YesText:=PreFixString & "IPP 11(e)(i))"
                 
     CreateNode Name:="20", _
                 Question:="Is disclosure necessary for enforcement of a law imposing a percuniary penalty?", _
@@ -258,11 +261,11 @@ Function InitialNodes()
                 Question:="I have reasonable grounds for my belief because: ", _
                 YesNode:="54", _
                 NoNode:="24", _
-                NeedAnswer:=False, _
+                NeedAnswer:=True, _
                 Tip:="", _
                 Answer:="", _
                 ActionNo:=2, _
-                YesText:=PreFixString & "IPP 11(e)(ii)"
+                YesText:=PreFixString & "IPP 11(e)(ii))"
 
     CreateNode Name:="23", _
                 Question:="There is no such law", _
@@ -304,11 +307,11 @@ Function InitialNodes()
                 Question:="I have reasonable grounds for my belief because:", _
                 YesNode:="54", _
                 NoNode:="29", _
-                NeedAnswer:=False, _
+                NeedAnswer:=True, _
                 Tip:="", _
                 Answer:="", _
                 ActionNo:=2, _
-                YesText:=PreFixString & "IPP 11(e)(iii)"
+                YesText:=PreFixString & "IPP 11(e)(iii))"
 
     CreateNode Name:="26", _
                 Question:="The public revenue is not in issue:", _
@@ -337,7 +340,6 @@ Function InitialNodes()
                 Answer:="", _
                 ActionNo:=2
 
-
     CreateNode Name:="31", _
                 Question:="The proceedings are:", _
                 YesNode:="32", _
@@ -364,8 +366,9 @@ Function InitialNodes()
                 Tip:="", _
                 Answer:="", _
                 ActionNo:=2, _
-                YesText:=PreFixString & "IPP 11(e)(iv)"
+                YesText:=PreFixString & "IPP 11(e)(iv))"
 
+    '###need a no branch
     CreateNode Name:="34", _
                 Question:="Is disclosure necessary to prevent or lessen a serious threat?", _
                 YesNode:="35.1", _
@@ -434,7 +437,7 @@ Function InitialNodes()
     CreateNode Name:="40", _
                 Question:="I have reasonable grounds for my assessment that the threat is serious because: ", _
                 YesNode:="41", _
-                NoNode:="eixt", _
+                NoNode:="exit", _
                 NeedAnswer:=True, _
                 Tip:="", _
                 Answer:="", _
@@ -458,7 +461,7 @@ Function InitialNodes()
                 Tip:="", _
                 Answer:="", _
                 ActionNo:=2, _
-                YesText:=PreFixString & "IPP 11(f)", _
+                YesText:=PreFixString & "IPP 11(f))", _
                 NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure (e.g. AISA, Schedule 4A or 5 entry, bespoke legislation."
     
     CreateNode Name:="51", _
@@ -471,7 +474,7 @@ Function InitialNodes()
                 ActionNo:=2
     
     CreateNode Name:="52", _
-                Question:="Is information subject to Tax Administration Act Senior Courts Act, District Courts Act, or Births, Deaths, Marriages, and Relationships Registration Act?", _
+                Question:="Is information subject to Tax Administration Act, Senior Courts Act, District Courts Act, or Births, Deaths, Marriages, and Relationships Registration Act?", _
                 YesNode:="exit", _
                 NoNode:="exit", _
                 NeedAnswer:=False, _
@@ -486,17 +489,17 @@ Function InitialNodes()
                 YesNode:="1", _
                 NoNode:="exit", _
                 NeedAnswer:=False, _
-                Tip:="", _
+                Tip:="IPP 11 sets out a general rule that information should not be disclosed unless disclosure is one of the purposes for having the information in the first place." & vbNewLine & "IPP 11 sets out a range of exceptions to this general rule. In proceedings under the Privacy Act, defendants have to prove an exception applies so it makes sense to keep a record of the decision and its rationale.", _
                 Answer:="", _
                 ActionNo:=2, _
-                NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure (e.g. AISA, Schedule 4A or 5 entry, bespoke legislation."
+                NoText:="Authorisation needed (e.g. AISA, Schedule 4A or 5 entry, Privacy Act Code of Practice, bespoke legislation, s 54 authorisation)"
     
     CreateNode Name:="54", _
                 Question:="What are the threshold criteria? For bulk or automated releases, can the threshold criteria be applied automatically?", _
                 YesNode:="55", _
                 NoNode:="permitted", _
                 NeedAnswer:=False, _
-                Tip:="", _
+                Tip:="Consider using a memorandum of understanding to: specify how information sharing will work;" & vbNewLine & "identify how accuracy of disclosed information will be ensured; specify how disclosed information will be used. Consider publishing memorandums of understanding to enhance transparency.", _
                 Answer:="", _
                 ActionNo:=2, _
                 NoText:="Case by case disclosure will be required."
@@ -504,12 +507,12 @@ Function InitialNodes()
     CreateNode Name:="55", _
                 Question:="Can the information at issue be served from other information, so disclosure is limited to the relevant information?", _
                 YesNode:="56", _
-                NoNode:="", _
+                NoNode:="exit", _
                 NeedAnswer:=False, _
                 Tip:="", _
                 Answer:="", _
                 ActionNo:=2, _
-                NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure (e.g. AISA, Schedule 4A or 5 entry, bespoke legislation."
+                NoText:="Authorisation needed (e.g. AISA, Schedule 4A or 5 entry, Privacy Act Code of Practice, bespoke legislation, s 54 authorisation)"
     
     '###
     CreateNode Name:="56", _
@@ -517,11 +520,11 @@ Function InitialNodes()
                 YesNode:="exit", _
                 NoNode:="permitted", _
                 NeedAnswer:=False, _
-                Tip:="", _
+                Tip:="Harm includes taking adverse action against a person (e.g. stopping a benefit, imposing a sanction). Adverse action is justifiable if based on accurate information, and accompanied by natural justice. Harm includes significant distress or humiliation, material losses, damage to reputation. Harm is particularly likely if information is inaccurate.", _
                 Answer:="", _
                 ActionNo:=2, _
-                YesText:="Disclosure in accordance with IPP exceptions", _
-                NoText:="Reduce risk by building in natural justice (for adverse action) and safeguards to improve accuracy"
+                YesText:="Reduce risk by building in natural justice (for adverse action) and safeguards to improve accuracy", _
+                NoText:="Disclosure in accordance with IPP exceptions"
                 
 End Function
 
@@ -693,12 +696,14 @@ Function LoadNode(nodeName As String)
     End If
     'set pop up form title
     If IsNumeric(nodeName) Then
-        If nodeName < 14 Then
+        If 0 < nodeName < 14 Then
             fmNodes.Caption = "Applying the IPP exceptions - Purpose of disclosure"
-        ElseIf nodeName < 34 Then
+        ElseIf 13 < nodeName < 34 Then
             fmNodes.Caption = "Applying the IPP exceptions - Maintenance of the law and related exceptions"
-        Else
+        ElseIf 33 < nodeName < 43 Then
             fmNodes.Caption = "Applying the IPP exceptions - Serious threat"
+        ElseIf 50 < nodeName < 57 Then
+            fmNodes.Caption = "Legislative vehicles for sharing personal information - Overview"
         End If
     End If
 
