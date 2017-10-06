@@ -69,7 +69,7 @@ Function InitialNodes()
                 YesNode:="54", _
                 NoNode:="4", _
                 NeedAnswer:=True, _
-                Tip:="Remember that an explanation devised in hindsight won't suffice." & "Whether or not a purpose included disclosure, or whether a disclosure is directly related to the purposeis a question of fact." & vbNewLine & "(Director of Human Rights Proceedings v Crampton [2015] NZHRRT 35 at [81-82])" & vbNewLine & "That makes it advisable to document the purpose for collecting, obtaining, or creating information, and to note the reasons for disclosing it.", _
+                Tip:="Remember that an explanation devised in hindsight won't suffice.", _
                 Answer:="", _
                 ActionNo:=2, _
                 YesText:=PreFixString & "IPP 11(a))"
@@ -111,7 +111,7 @@ Function InitialNodes()
                 YesNode:="54", _
                 NoNode:="8", _
                 NeedAnswer:=False, _
-                Tip:="", _
+                Tip:="E.g. a website, news story, public register. The information being disclosed must actually come from that public source", _
                 Answer:="", _
                 ActionNo:=2, _
                 YesTextBox:=True, _
@@ -167,7 +167,7 @@ Function InitialNodes()
                 YesNode:="54", _
                 NoNode:="13", _
                 NeedAnswer:=False, _
-                Tip:="E.g. the sale of a retail business or a professional firm (e.g. law firm, accountancy) includes its customer list." & vbNewLine & " This exception DOES NOT permit:" & vbNewLine & Chr(149) & " Sale of a customer list without the business also being sold." & vbNewLine & Chr(149) & "sale of a customer list to defray debts in a receivership or liquidation.", _
+                Tip:="E.g. the sale of a retail business or a professional firm (e.g. law firm, accountancy) includes its customer list." & vbNewLine & " This exception DOES NOT permit:" & vbNewLine & Chr(149) & " Sale of a customer list without the business also being sold." & vbNewLine & Chr(149) & " Sale of a customer list to defray debts in a receivership or liquidation.", _
                 Answer:="", _
                 ActionNo:=2, _
                 YesTextBox:=True, _
@@ -189,7 +189,7 @@ Function InitialNodes()
                 YesNode:="17", _
                 NoNode:="17", _
                 NeedAnswer:=False, _
-                Tip:="Maintenance of the law includes:" & vbNewLine & Chr(149) & " Prevention - e.g." & vbNewLine & Chr(149) & " Detection - e.g. checking with an agency to see whether an employee has wrongfully accessed an information systems, to verify allegations made (Tan v NZ Police [2016] NZHRRT 32)" & vbNewLine & Chr(149) & " Investigation - e.g." & vbNewLine & Chr(149) & " Prosecution - e.g." & vbNewLine & Chr(149) & " Punishment - e.g. disclosure details of fines to Ministry of Justice collections unit for enforcement.", _
+                Tip:="Maintenance of the law includes:" & vbNewLine & Chr(149) & " Prevention - e.g." & vbNewLine & Chr(149) & " Detection - e.g. checking with an agency to see whether an employee has wrongfully accessed an information system, to verify allegations made (Tan v NZ Police [2016] NZHRRT 32)" & vbNewLine & Chr(149) & " Investigation - e.g." & vbNewLine & Chr(149) & " Prosecution - e.g." & vbNewLine & Chr(149) & " Punishment - e.g. disclosure details of fines to Ministry of Justice collections unit for enforcement.", _
                 Answer:="", _
                 ActionNo:=0
                 
@@ -225,7 +225,7 @@ Function InitialNodes()
                 YesNode:="16", _
                 NoNode:="16", _
                 NeedAnswer:=True, _
-                Tip:="", _
+                Tip:="Necessary means “needed or required” in the circumstances, not just “desirable or expedient”. However, “needed or required” is something less than “indispensible or essential”." & vbNewLine & "(Tan v NZ Police [2016] NZHRRT 32 at [77]; Commissioner of Police v Director of Human Rights Proceedings (2007) HRNZ 364 at [53])", _
                 Answer:="", _
                 ActionNo:=0
 
@@ -234,7 +234,7 @@ Function InitialNodes()
                 YesNode:="54", _
                 NoNode:="20", _
                 NeedAnswer:=True, _
-                Tip:="", _
+                Tip:="It must be an action belief based on a proper consideration of the relevant circumstances", _
                 Answer:="", _
                 ActionNo:=2, _
                 YesText:=PreFixString & "IPP 11(e)(i))"
@@ -244,7 +244,7 @@ Function InitialNodes()
                 YesNode:="21", _
                 NoNode:="23", _
                 NeedAnswer:=False, _
-                Tip:="Pecuniary penalties are monetary penalties imposed by statue. They are intended to punish and deter contravention of the law. They may be issued in civil or criminal proceedings.", _
+                Tip:="Pecuniary penalties are monetary penalties imposed by statute. They are intended to punish and deter contravention of the law. They may be issued in civil or criminal proceedings." & vbNewLine & "Law Commission (2014). Pecuniary penalties: guidance for legislative design. NZLC R133, at p. 4.", _
                 Answer:="", _
                 ActionNo:=2
 
@@ -253,7 +253,7 @@ Function InitialNodes()
                 YesNode:="22", _
                 NoNode:="22", _
                 NeedAnswer:=True, _
-                Tip:="", _
+                Tip:="Necessary means 'needed or required' in the circumstances, not just desirable or expedient'. However, 'needed or required' is something less than 'indispensible or essential'." & vbNewLine & "(Tan v NZ Police [2016] NZHRRT 32 at [77]; Commissioner of Police v Director of Human Rights Proceedings (2007) HRNZ 364 at [53])", _
                 Answer:="", _
                 ActionNo:=0
 
@@ -281,7 +281,7 @@ Function InitialNodes()
                 YesNode:="25", _
                 NoNode:="26", _
                 NeedAnswer:=False, _
-                Tip:="E.g. disclosure is to assess tax liabilities identify benefit fraud, enforce child support payments or payment of infringements or court fines.", _
+                Tip:="E.g. disclosure is to assess tax liabilities, identify benefit fraud, enforce child support payments or payment of infringements or court fines.", _
                 Answer:="", _
                 ActionNo:=2
 
@@ -299,7 +299,7 @@ Function InitialNodes()
                 YesNode:="28", _
                 NoNode:="28", _
                 NeedAnswer:=True, _
-                Tip:="  ", _
+                Tip:="Necessary means 'needed or required' in the circumstances, not just 'desirable or expedient'. However, 'needed or required' is something less than 'indispensible or essential'." & vbNewLine & "(Tan v NZ Police [2016] NZHRRT 32 at [77]; Commissioner of Police v Director of Human Rights Proceedings (2007) HRNZ 364 at [53])", _
                 Answer:="", _
                 ActionNo:=0
 
@@ -336,7 +336,7 @@ Function InitialNodes()
                 YesNode:="31", _
                 NoNode:="34", _
                 NeedAnswer:=False, _
-                Tip:="Reasonable in contemplation means[to come]...", _
+                Tip:="Reasonably in contemplation means [to come]...", _
                 Answer:="", _
                 ActionNo:=2
 
@@ -354,7 +354,7 @@ Function InitialNodes()
                 YesNode:="33", _
                 NoNode:="33", _
                 NeedAnswer:=True, _
-                Tip:="Necessary means 'needed or required' in the circumstances, not just 'desirable or expedient'." & vbNewLine & "However, 'needed or required' is something less than 'indispensible or essential'.", _
+                Tip:="Necessary means 'needed or required' in the circumstances, not just 'desirable or expedient'." & vbNewLine & "However, 'needed or required' is something less than 'indispensible or essential'." & vbNewLine & "(Tan v NZ Police [2016] NZHRRT 32 at [77]; Commissioner of Police v Director of Human Rights Proceedings (2007) HRNZ 364 at [53])", _
                 Answer:="", _
                 ActionNo:=0
 
@@ -402,7 +402,7 @@ Function InitialNodes()
                 YesNode:="37", _
                 NoNode:="exit", _
                 NeedAnswer:=False, _
-                Tip:="A 'serious' threat is one that the agency reasonably believes is serious based on three factors:", _
+                Tip:="A 'serious' threat is one that the agency reasonably believes is serious based on three factors", _
                 Answer:="", _
                 ActionNo:=2, _
                 NoText:="Return to the beginning to see if other exceptions apply. If not, authorisation will be needed for the disclosure."
@@ -449,7 +449,7 @@ Function InitialNodes()
                 YesNode:="42", _
                 NoNode:="42", _
                 NeedAnswer:=True, _
-                Tip:="Necessary means 'needed or required' in the circumstances, not just 'desirable or expedient'." & vbNewLine & "However, 'needed or required' is something less than 'indispensible or essential'.", _
+                Tip:="Necessary means 'needed or required' in the circumstances, not just 'desirable or expedient'." & vbNewLine & "However, 'needed or required' is something less than 'indispensible or essential'." & vbNewLine & "(Tan v NZ Police [2016] NZHRRT 32 at [77]; Commissioner of Police v Director of Human Rights Proceedings (2007) HRNZ 364 at [53])" & vbNewLine & "The disclosure needs to be made to a person who can do something to mitigate the threat. Otherwise, the disclosure may not be necessary." & vbNewLine & "(Henderson v Police Commissioner (HC WN CIV 2009-485-1037 29 April 2010 at [78])", _
                 Answer:="", _
                 ActionNo:=0
                 
@@ -687,12 +687,23 @@ Function LoadNode(nodeName As String)
     '###set button capiton
     If nodeName = "exit" Or nodeName = "permitted" Then
         fmNodes.btnNext.Caption = "Finish"
-        fmNodes.lbAnswer.Enabled = False
+        fmNodes.lbAnswer.Enabled = True
+        fmNodes.lbAnswer.Caption = "When you click Finish a Word document will open and you will be able to add to the Documentation output of the decision-making process. You can edit any areas that are shaded pale yellow."
         fmNodes.fmActions.Enabled = False
         fmNodes.obYes.Enabled = False
         fmNodes.obNo.Enabled = False
+        If nodeName = "exit" Then
+            fmNodes.imgNo.Visible = True
+            fmNodes.imgYes.Visible = False
+        End If
+        If nodeName = "permitted" Then
+            fmNodes.imgNo.Visible = False
+            fmNodes.imgYes.Visible = True
+        End If
     Else
         fmNodes.btnNext.Caption = "Next"
+        fmNodes.imgNo.Visible = False
+        fmNodes.imgYes.Visible = False
     End If
     'set pop up form title
     If IsNumeric(nodeName) Then
