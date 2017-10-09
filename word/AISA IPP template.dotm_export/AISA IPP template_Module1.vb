@@ -16,7 +16,7 @@ Public sCurrent As String   'current oNode name
 Public sNextNode As String  'next node name
 Public sPreNode As String   'previous node name
 Public EnableYesNoEvent As Boolean
-Public Const DefaultAnswerText = "Give your answer later."
+Public Const DefaultAnswerText = "You can complete this in full in the resulting word document."
 Public Const PlaceHolderText = "Space to write more"
 Public Const QuestionStyle = "Question" 'Word style name for question
 Public Const AnswerStyle = "Answer"     'Word style name for yes/no answer
@@ -630,7 +630,12 @@ Function LoadNode(nodeName As String)
     Case Else
         Dim nd As New oNode
         Set nd = GetNodeByName(nodeName)
-        fmNodes.lbQuestion.Caption = nd.Name & " " & nd.sQuestion '###put node name before question text
+        'put question number before question, except for exit/permitted
+        If nd.Name = "exit" Or nd.Name = "permitted" Then
+            fmNodes.lbQuestion.Caption = nd.sQuestion
+        Else
+            fmNodes.lbQuestion.Caption = nd.Name & " " & nd.sQuestion '###put node name before question text
+        End If
         fmNodes.lbAnswer.Caption = IIf(nd.NeedAnswer, DefaultAnswerText, "") 'nd.sAnswer
         fmNodes.lbAnswer.Enabled = True 'IIf(nd.NeedAnswer, True, False)  'disable textbox if no text answer needed.
         'fmNodes.lbTitle.Enabled = False 'IIf(nd.NeedAnswer, True, False)
@@ -665,19 +670,6 @@ Function LoadNode(nodeName As String)
         sHelpText = nd.sTip
         fmNodes.btnHelp.Visible = IIf(sHelpText = "", False, True)
         sCurrent = nodeName
-        'set text of permitted / exit node
-'        If nd.YesText <> "" Then
-'            GetNodeByName(nd.YesNode).sAnswer = nd.YesText
-'        End If
-'        If nd.NoText <> "" Then
-'            GetNodeByName(nd.NoNode).sAnswer = nd.NoText
-'        End If
-        
-'        If nd.YesNode = "permitted" Or nd.NoNode = "permitted" Then
-'            GetNodeByName("permitted").sAnswer = nd.YesText
-'        End If
-'        If nd.YesNode = "exit" Or nd.NoNode = "exit" Then
-'        End If
 
         'set text in answer text box
         If nd.sAnswer <> "" And Left(nd.sAnswer, 3) <> "IPP" Then
