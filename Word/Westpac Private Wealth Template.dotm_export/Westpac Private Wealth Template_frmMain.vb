@@ -149,6 +149,15 @@ Private Sub btnOK_Click()
     If InStr(cbAdviser.Value, "Anna Francis") > 0 Then
         DocPrty "AdviserTitle", "PWM Executive"
     End If
+    Dim rg As Range
+    Dim rgTmp As Range
+    Dim doc As Document
+    Dim bm As Bookmark
+    Set doc = ActiveDocument
+    Me.Hide
+    If doc.ProtectionType <> wdNoProtection Then
+        doc.Unprotect PassWord
+    End If
     
     DocPrty "date", Format(Date, "dd mmmm yyyy")
     DocPrty "AdviserName", cbAdviser.Value
@@ -283,13 +292,11 @@ Private Sub btnOK_Click()
         DocPrty "youBeneficiaries", "the Beneficiaries"
         DocPrty "youthem", "them"
     End Select
-    Dim rg As Range
-    Dim rgTmp As Range
-    Dim doc As Document
-    Dim bm As Bookmark
-    Set doc = ActiveDocument
-    Me.Hide
     
+    'write client names to bookmarked places
+    If doc.Bookmarks.Exists("ClientName1") Then
+        doc.Bookmarks("ClientName1").Range.Text = GetDocPrty("ClientNames")
+    End If
     'write client formal names
     DocPrty "ClientNameFormal", GetDocPrty("ClientFormal1") & IIf(GetDocPrty("ClientFormal2") = " ", "", IIf(GetDocPrty("ClientFormal3") = " ", " and " & GetDocPrty("ClientFormal2"), ", " & GetDocPrty("ClientFormal2") & " and " & GetDocPrty("ClientFormal3")))
     Debug.Print "ClientNameFormal: " & GetDocPrty("ClientNameFormal")
