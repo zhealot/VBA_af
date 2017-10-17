@@ -8,7 +8,7 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 
-Public Function PopulateCtl(IniFileName As String, cboToPopulate As Control, GroupName As String) As Boolean
+Public Function PopulateCtl(IniFileName As String, cboToPopulate As control, GroupName As String) As Boolean
 On Error GoTo Error_Handler:
 Dim item$
 Dim count

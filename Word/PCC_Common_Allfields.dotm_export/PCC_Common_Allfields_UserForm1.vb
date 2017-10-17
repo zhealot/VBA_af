@@ -69,6 +69,12 @@ If txtFax = "" Then
     Exit Sub
 End If
 
+If obPorirua.Value = False And obPataka.Value = False Then
+    Beep
+    MsgBox "Please choose a logo for signature."
+    Exit Sub
+End If
+
 ' Required to pick Web Address
 
 'If cboWeb1.Value = "" Then
@@ -199,8 +205,44 @@ System.PrivateProfileString(strDefaultUserIni, "UserSetupi", "DateChecki") = For
 Unload UserForm1
 'PCC Setting
 'Run script to generate signature
-Shell "Wscript.exe W:\!Common\Templates\Allfields_Setup\2010_Signature\PCC_Signature.vbs"
-
+'Shell "Wscript.exe W:\!Common\Templates\Allfields_Setup\2010_Signature\PCC_Signature.vbs"
+'new approach based on VBS script. 17/08/2017 tao@allfields.co.nz
+   
+    Dim doc As Document
+    Dim sSig As String  'builing block name
+    Set doc = Documents.Add(, , , True)
+    Set oEmail = Application.EmailOptions
+    Set oSignature = oEmail.EmailSignature
+    Set oSignatureEntry = oSignature.EmailSignatureEntries
+    
+    Dim rg As Range
+    'ThisDocument.Content.Delete
+    Set rg = doc.Content
+    rg.Collapse wdCollapseStart
+    sSig = IIf(obPorirua, "signature", "signature2")
+    ThisDocument.AttachedTemplate.BuildingBlockEntries(sSig).Insert rg, True
+    Dim names() As String
+    names = Split(txtUser)
+    FillBookmark doc, "firstname", names(0)
+    If UBound(names) > 0 Then
+        FillBookmark doc, "lastname", names(1)
+    Else
+        FillBookmark doc, "lastname", ""
+    End If
+    
+    FillBookmark doc, "ddi", txtDDI
+    FillBookmark doc, "mobile", txtMobile
+    FillBookmark doc, "email", txtEmail
+    FillBookmark doc, "title", txtTitle
+    For Each para In doc.Paragraphs
+        para.SpaceAfter = 0
+    Next para
+    oSignatureEntry.Add "PCC-Test", doc.Content
+    oSignature.NewMessageSignature = "PCC-Test"
+    oSignature.ReplyMessageSignature = "PCC-Test"
+    doc.Saved = True
+    doc.Close
+    Set doc = Nothing
 'Allfields Test
 'Run script to generate signature
 'Shell "Wscript.exe H:\PCC_Signature.vbs"
@@ -599,7 +641,7 @@ End If
 Dim clsFileOp2 As New FileOperations
 
 ' Dim Control and Populate It
-Dim ctlBusGroup2 As Control
+Dim ctlBusGroup2 As control
 Set ctlBusGroup2 = Me.cboQuote
 
 lret = clsFileOp2.PopulateCtl(strQuoteIni, ctlBusGroup2, "[Quote]")
@@ -615,7 +657,7 @@ End If
 Dim clsFileOp As New FileOperations
 
 ' Dim Control and Populate It
-Dim ctlBusGroup As Control
+Dim ctlBusGroup As control
 Set ctlBusGroup = Me.cboBusGroup
 
 lret = clsFileOp.PopulateCtl(strDivisionIni, ctlBusGroup, "[Division]")
@@ -755,7 +797,5 @@ Public Sub ReplaceTextInSelection(sFind As String, sReplace As String)
     Selection.Find.Execute Replace:=wdReplaceAll
     
 End Sub
-
-
 
 

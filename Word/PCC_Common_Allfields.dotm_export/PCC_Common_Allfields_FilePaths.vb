@@ -2,21 +2,21 @@ Attribute VB_Name = "FilePaths"
 'Declare global and const
 
 'PCC Set Up
-Public Const strDivisionIni = "C:\Users\tao\Box Sync\1. Clients\Porirua City Council\PCC Templates 2012\Settings files\Division.ini" '###"W:\!Common\Templates\Office_2010\Division.ini"
-Public Const strQuoteIni = "C:\Users\tao\Box Sync\1. Clients\Porirua City Council\PCC Templates 2012\Settings files\Quote.ini" '###"W:\!Common\Templates\Office_2010\Quote.ini"
-Public Const strDefaultUserIni = "C:\Users\tao\Box Sync\1. Clients\Porirua City Council\PCC Templates 2012\Settings files\User.ini" '###"H:\User.ini"
-Public Const strWebIni = "C:\Users\tao\Box Sync\1. Clients\Porirua City Council\PCC Templates 2012\Settings files\web.ini" '###"W:\!Common\Templates\Office_2010\web.ini"
+Public Const strDivisionIni = "W:\!Common\Templates\Office_2010\Division.ini"
+Public Const strQuoteIni = "W:\!Common\Templates\Office_2010\Quote.ini"
+Public Const strDefaultUserIni = "H:\User.ini"
+Public Const strWebIni = "W:\!Common\Templates\Office_2010\web.ini"
 
-' Allfields Setup
-'Public Const strDivisionIni = "H:\Division.ini"
-'Public Const strQuoteIni = "H:\quote.ini"
-'Public Const strWebIni = "H:\web.ini"
-'Public Const strDefaultUserIni = "C:\Template_Toolkit\Set_Up\user.ini"
+'### Allfields Setup
+'Public Const strDivisionIni = "H:\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\Division.ini"
+'Public Const strQuoteIni = "H:\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\quote.ini"
+'Public Const strWebIni = "H:\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\web.ini"
+'Public Const strDefaultUserIni = "H:\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\User.ini"
 
 
 Public Const MAX_INI_WRITE_ATTEMPTS = 3
-Public Const FILE_VERSION = "4.1"
-Public Const LAST_UPDATED = "24/07/2012 3:30pm"
+Public Const FILE_VERSION = "4.2"
+Public Const LAST_UPDATED = "21/08/2017 3:30pm"
 Public Const LAST_AUTHOR = "Allfields"
 
 Public strWorkgroupTemplatesPath As String
@@ -33,7 +33,7 @@ Sub Autoexec()
 
     If Not TOOLKIT_LOADED Then
         ' Get the default path from the Workgroup Templates directive in Word
-        strWorkgroupTemplatesPath = "C:\Users\tao\Box Sync\1. Clients\Porirua City Council\PCC Templates 2012\Office 2010 Templates" 'Options.DefaultFilePath(wdWorkgroupTemplatesPath)
+        strWorkgroupTemplatesPath = Options.DefaultFilePath(wdWorkgroupTemplatesPath)
                 
         strTemplatesPath = strWorkgroupTemplatesPath & "\"
         strUserIniPath = strDefaultUserIni

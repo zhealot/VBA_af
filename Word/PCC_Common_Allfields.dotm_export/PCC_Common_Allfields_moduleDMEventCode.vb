@@ -14,23 +14,6 @@ Attribute VB_Name = "moduleDMEventCode"
 '[HKEY_CURRENT_USER\Software\Microsoft\Office\Word\Addins\DM_COM_Addin.WordAddin]
 '"EventBeforeFooter"="moduleDMEventCode.subEventBeforeFooter"
 
-Public Sub subEventBeforeFooter(Control As IRibbonControl)
-' This subroutine is called by DM when the Insert>DM Footer
-' menu item is clicked in Word.
-' The DM code that normally inserts the footer is not called,
-' i.e. this code replaces that code.
-'
-' Collect the information intended for the footer.
-'Dim strFooterText As String
-'strFooterText = get_footer_information()
-'' Insert the information into the footer.
-'insert_footer strFooterText
-    If Not Trim(ActiveDocument.BuiltInDocumentProperties(wdPropertyComments).Value) = "" Then
-        Call PCC_Footer
-    Else
-        MsgBox "No daisy footer is available yet." & vbNewLine & "Please close the document and open again in EDIT mode."
-    End If
-End Sub
 
 Private Sub insert_footer(strFooterText As String)
 Dim footer_selection As Selection

@@ -545,7 +545,7 @@ Function CreateDocument(stage As String)
         Set nd = GetNodeByName(FirstNode)
         Do While nd.Name <> "exit" And nd.Name <> "permitted"
             doc.Paragraphs.Add
-            doc.Paragraphs.Last.Range.Text = nd.sQuestion '& vbNewLine & vbTab & IIf(nd.ActionNo > 0, IIf(nd.YesNo = "y", "Yes: ", "No."), "") & nd.sAnswer
+            doc.Paragraphs.Last.Range.Text = nd.Name & ": " & nd.sQuestion '& vbNewLine & vbTab & IIf(nd.ActionNo > 0, IIf(nd.YesNo = "y", "Yes: ", "No."), "") & nd.sAnswer
             doc.Paragraphs.Last.Range.Style = QuestionStyle
             If nd.ActionNo > 0 Then
                 doc.Paragraphs.Add

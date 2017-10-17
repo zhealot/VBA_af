@@ -77,13 +77,13 @@ Public Function PCC_Footer()
     Dim RgFirst As Range
     Dim FtPrimary As HeaderFooter
     Dim FtFirst As HeaderFooter
-    Dim Doc As Document
+    Dim doc As Document
     Dim RgTmp As Range
     Dim sc As Section
-    Set Doc = ActiveDocument
+    Set doc = ActiveDocument
     
-    'update fields
-    For Each sc In Doc.Sections
+    'update footer fields
+    For Each sc In doc.Sections
         If sc.Footers(wdHeaderFooterEvenPages).Exists Then
             sc.Footers(wdHeaderFooterEvenPages).Range.Fields.Update
         End If
@@ -95,53 +95,145 @@ Public Function PCC_Footer()
         End If
     Next sc
     
+    'update header fields
+    For Each sc In doc.Sections
+        If sc.Headers(wdHeaderFooterEvenPages).Exists Then
+            sc.Headers(wdHeaderFooterEvenPages).Range.Fields.Update
+        End If
+        If sc.Headers(wdHeaderFooterFirstPage).Exists Then
+            sc.Headers(wdHeaderFooterFirstPage).Range.Fields.Update
+        End If
+        If sc.Headers(wdHeaderFooterPrimary).Exists Then
+            sc.Headers(wdHeaderFooterPrimary).Range.Fields.Update
+        End If
+    Next sc
+    
+    
     'do nothing if no comments
-    If Trim(Doc.BuiltInDocumentProperties(wdPropertyComments).Value) = "" Then
+    If Trim(doc.BuiltInDocumentProperties(wdPropertyComments).Value) = "" Then
         Exit Function
     End If
-    
-    
+        
     'insert "PCC #<document Number><tab>" into first page's footer while keeping existing footer information
-    Set FtFirst = Doc.Sections(1).Footers(wdHeaderFooterFirstPage)
+    Set FtFirst = doc.Sections(1).Footers(wdHeaderFooterFirstPage)
     If Not Left(Trim(FtFirst.Range.Text), Len(FixString)) = FixString Then
         Set RgTmp = FtFirst.Range
         RgTmp.Collapse wdCollapseStart
         RgTmp.InsertBefore vbTab
         Set RgTmp = FtFirst.Range
         RgTmp.Collapse wdCollapseStart
-        Doc.Fields.Add RgTmp, wdFieldComments
+        doc.Fields.Add RgTmp, wdFieldComments
         Set RgTmp = FtFirst.Range
         RgTmp.Collapse wdCollapseStart
         FtFirst.Range.InsertBefore FixString
     End If
     
-    Set FtPrimary = Doc.Sections(1).Footers(wdHeaderFooterPrimary)
+    Set FtPrimary = doc.Sections(1).Footers(wdHeaderFooterPrimary)
     If Not Left(Trim(FtPrimary.Range.Text), Len(FixString)) = FixString Then
-        SetPrimaryFooter FtPrimary, Doc
+        SetPrimaryFooter FtPrimary, doc
     End If
         
-    If Doc.Sections.count > 1 Then
+    If doc.Sections.count > 1 Then
         Dim i As Integer
-        For i = 2 To Doc.Sections.count Step 1
-            If Doc.Sections(i).Footers(wdHeaderFooterEvenPages).Exists And Left(Trim(Doc.Sections(i).Footers(wdHeaderFooterEvenPages).Range.Text), Len(FixString)) <> FixString Then
-                SetPrimaryFooter Doc.Sections(i).Footers(wdHeaderFooterEvenPages), Doc
+        For i = 2 To doc.Sections.count Step 1
+            If doc.Sections(i).Footers(wdHeaderFooterEvenPages).Exists And Left(Trim(doc.Sections(i).Footers(wdHeaderFooterEvenPages).Range.Text), Len(FixString)) <> FixString Then
+                SetPrimaryFooter doc.Sections(i).Footers(wdHeaderFooterEvenPages), doc
             End If
-            If Doc.Sections(i).Footers(wdHeaderFooterFirstPage).Exists And Left(Trim(Doc.Sections(i).Footers(wdHeaderFooterFirstPage).Range.Text), Len(FixString)) <> FixString Then
-                SetPrimaryFooter Doc.Sections(i).Footers(wdHeaderFooterFirstPage), Doc
+            If doc.Sections(i).Footers(wdHeaderFooterFirstPage).Exists And Left(Trim(doc.Sections(i).Footers(wdHeaderFooterFirstPage).Range.Text), Len(FixString)) <> FixString Then
+                SetPrimaryFooter doc.Sections(i).Footers(wdHeaderFooterFirstPage), doc
             End If
-            If Doc.Sections(i).Footers(wdHeaderFooterPrimary).Exists And Left(Trim(Doc.Sections(i).Footers(wdHeaderFooterPrimary).Range.Text), Len(FixString)) <> FixString Then
-                SetPrimaryFooter Doc.Sections(i).Footers(wdHeaderFooterPrimary), Doc
+            If doc.Sections(i).Footers(wdHeaderFooterPrimary).Exists And Left(Trim(doc.Sections(i).Footers(wdHeaderFooterPrimary).Range.Text), Len(FixString)) <> FixString Then
+                SetPrimaryFooter doc.Sections(i).Footers(wdHeaderFooterPrimary), doc
             End If
         Next
     End If
-    
+'************************************************************************************************************************
+'in case the Daisy code is in Header, and has other strings in it other 'PCC #'
+    'update fields
+'    For Each sc In doc.Sections
+'        If sc.Headers(wdHeaderFooterEvenPages).Exists Then
+'            sc.Headers(wdHeaderFooterEvenPages).Range.Fields.Update
+'        End If
+'        If sc.Headers(wdHeaderFooterFirstPage).Exists Then
+'            sc.Headers(wdHeaderFooterFirstPage).Range.Fields.Update
+'        End If
+'        If sc.Headers(wdHeaderFooterPrimary).Exists Then
+'            sc.Headers(wdHeaderFooterPrimary).Range.Fields.Update
+'        End If
+'    Next sc
+'
+'    'do nothing if no comments
+'    If Trim(doc.BuiltInDocumentProperties(wdPropertyComments).Value) = "" Then
+'        Exit Function
+'    End If
+'
+'
+'    'insert "PCC #<document Number><tab>" into first page's footer while keeping existing footer information
+'    Set FtFirst = doc.Sections(1).Headers(wdHeaderFooterFirstPage)
+'    If Not InStr(Trim(FtFirst.Range.Text), FixString) > 0 Then
+'        Set RgTmp = FtFirst.Range
+'        RgTmp.Collapse wdCollapseStart
+'        RgTmp.InsertBefore vbTab
+'        Set RgTmp = FtFirst.Range
+'        RgTmp.Collapse wdCollapseStart
+'        doc.Fields.Add RgTmp, wdFieldComments
+'        Set RgTmp = FtFirst.Range
+'        RgTmp.Collapse wdCollapseStart
+'        FtFirst.Range.InsertBefore FixString
+'    End If
+'
+'    Set FtPrimary = doc.Sections(1).Footers(wdHeaderFooterPrimary)
+'    If Not Left(Trim(FtPrimary.Range.Text), Len(FixString)) = FixString Then
+'        SetPrimaryFooter FtPrimary, doc
+'    End If
+'
+'    If doc.Sections.count > 1 Then
+'        Dim i As Integer
+'        For i = 2 To doc.Sections.count Step 1
+'            If doc.Sections(i).Footers(wdHeaderFooterEvenPages).Exists And Left(Trim(doc.Sections(i).Footers(wdHeaderFooterEvenPages).Range.Text), Len(FixString)) <> FixString Then
+'                SetPrimaryFooter doc.Sections(i).Footers(wdHeaderFooterEvenPages), doc
+'            End If
+'            If doc.Sections(i).Footers(wdHeaderFooterFirstPage).Exists And Left(Trim(doc.Sections(i).Footers(wdHeaderFooterFirstPage).Range.Text), Len(FixString)) <> FixString Then
+'                SetPrimaryFooter doc.Sections(i).Footers(wdHeaderFooterFirstPage), doc
+'            End If
+'            If doc.Sections(i).Footers(wdHeaderFooterPrimary).Exists And Left(Trim(doc.Sections(i).Footers(wdHeaderFooterPrimary).Range.Text), Len(FixString)) <> FixString Then
+'                SetPrimaryFooter doc.Sections(i).Footers(wdHeaderFooterPrimary), doc
+'            End If
+'        Next
+'    End If
+'******************************************************************************************************************************************************
     Application.ScreenUpdating = True
 End Function
 
-Public Function SetPrimaryFooter(FooterPrimary As HeaderFooter, Doc As Document)
+Public Function SetPrimaryFooter(FooterPrimary As HeaderFooter, doc As Document)
     FooterPrimary.Range.Text = ""
     FooterPrimary.Range.Collapse wdCollapseStart
-    Doc.Fields.Add FooterPrimary.Range, wdFieldComments
+    doc.Fields.Add FooterPrimary.Range, wdFieldComments
     FooterPrimary.Range.Collapse wdCollapseStart
     FooterPrimary.Range.InsertBefore FixString
 End Function
+
+
+Function FillBookmark(doc As Document, bm As String, txt As String)
+    If doc.Bookmarks.Exists(bm) Then
+        doc.Bookmarks(bm).Range.Text = txt
+    End If
+End Function
+
+Sub TestAD()
+'test reading user info from AD via AD object
+    Dim sUser As String
+    Set objSysInfo = CreateObject("ADSystemInfo")
+    sUser = objSysInfo.UserName
+    Set objuser = GetObject("LDAP://" & sUser)
+    
+    Debug.Print sUser
+    Debug.Print objuser.DisplayName             'user name
+    Debug.Print objuser.Title                   'title
+    Debug.Print objuser.department              'department
+    Debug.Print objuser.telephoneNumber         'phone
+    Debug.Print objuser.facsimileTelephoneNumber 'fax
+    Debug.Print objuser.mobile                  'mobile
+    Debug.Print objuser.mail                    'email
+
+End Sub

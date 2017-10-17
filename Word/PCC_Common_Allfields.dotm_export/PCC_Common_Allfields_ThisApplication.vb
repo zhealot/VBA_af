@@ -12,12 +12,12 @@ Option Explicit
 Public WithEvents oApp As Word.Application
 Attribute oApp.VB_VarHelpID = -1
 
-Private Sub oApp_DocumentOpen(ByVal Doc As Document)
+Private Sub oApp_DocumentOpen(ByVal doc As Document)
     If Not ActiveDocument.Type = wdTypeTemplate Then
         Call PCC_Footer
     End If
 End Sub
 
-Private Sub oApp_NewDocument(ByVal Doc As Document)
+Private Sub oApp_NewDocument(ByVal doc As Document)
     Call PCC_Footer
 End Sub

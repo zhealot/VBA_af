@@ -1,5 +1,5 @@
 Attribute VB_Name = "UserForm"
-Sub UserSetup(Control As IRibbonControl)
+Sub UserSetup(control As IRibbonControl)
 '   Loads the UserForm1 and displays it
 Load UserForm1
 UserForm1.Show

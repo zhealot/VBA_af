@@ -158,7 +158,7 @@ Private Sub UserForm_Initialize()
     iRowMax = Max(iRowMax, iTop)
     
     ' Set the form boundaries to fit the contents
-    Me.Width = (GRID_LEFT * 2) + ((GRID_COLS + 1) * GROUP_WIDTH)
+    Me.Width = (GRID_LEFT * 2) + ((GRID_COLS + 1) * GROUP_WIDTH) - 100 '### '- 100' to reduce width of fewer templates, tao@allfields.co.nz 17/08/2017
     If iGroupCount Mod (GRID_COLS + 1) <> 0 Then
         Me.Height = (iRowMax) + 50
     Else
@@ -196,7 +196,7 @@ Sub cmbCancel_Click()
 End Sub
 
 Sub cmbOK_Click()
-    Dim optControl As Control
+    Dim optControl As control
     Dim strTemplateChoice As String
     Dim strTemplatePath As String
     Dim strFileToCreate As String
@@ -218,7 +218,7 @@ Sub cmbOK_Click()
         Exit Sub
     End If
     
-    strTemplatePath = "C:\Users\tao\Box Sync\1. Clients\Porirua City Council\PCC Templates 2012\Office 2010 Templates\" '###Options.DefaultFilePath(wdWorkgroupTemplatesPath) & "\"
+    strTemplatePath = Options.DefaultFilePath(wdWorkgroupTemplatesPath) & "\"
     strFileToCreate = strTemplatePath & strTemplateChoice
  
     Unload Me
