@@ -210,7 +210,7 @@ Unload UserForm1
    
     Dim doc As Document
     Dim sSig As String  'builing block name
-    Set doc = Documents.Add(, , , True)
+    Set doc = Documents.Add(, , , False)
     Set oEmail = Application.EmailOptions
     Set oSignature = oEmail.EmailSignature
     Set oSignatureEntry = oSignature.EmailSignatureEntries
@@ -237,9 +237,19 @@ Unload UserForm1
     For Each para In doc.Paragraphs
         para.SpaceAfter = 0
     Next para
-    oSignatureEntry.Add "PCC-Test", doc.Content
-    oSignature.NewMessageSignature = "PCC-Test"
-    oSignature.ReplyMessageSignature = "PCC-Test"
+    '### for unknown reason, when call to the 'SignatureEntry.Add' method, the generated signature has different font & paragraph spacing
+    'so here's a workaround: set font and spacing again before calling the method. tao@allfields.co.nz, 26/10/2017
+    doc.Content.Font.Name = "Arial"
+    doc.Content.ParagraphFormat.LineSpacingRule = wdLineSpaceSingle
+    doc.Paragraphs(1).Range.Font.Size = 12
+    doc.Paragraphs(2).Range.Font.Size = 18
+    For i = 3 To 8
+        doc.Paragraphs(i).Range.Font.Size = 10
+    Next i
+    'call Word function to generate Outlook signature
+    oSignatureEntry.Add "PCC - " & names(0), doc.Content
+    oSignature.NewMessageSignature = "PCC - " & names(0)
+    oSignature.ReplyMessageSignature = "PCC - " & names(0)
     doc.Saved = True
     doc.Close
     Set doc = Nothing

@@ -115,62 +115,8 @@ Public Function PCC_Footer()
     End If
         
     'insert "PCC #<document Number><tab>" into first page's footer while keeping existing footer information
-    Set FtFirst = doc.Sections(1).Footers(wdHeaderFooterFirstPage)
-    If Not Left(Trim(FtFirst.Range.Text), Len(FixString)) = FixString Then
-        Set RgTmp = FtFirst.Range
-        RgTmp.Collapse wdCollapseStart
-        RgTmp.InsertBefore vbTab
-        Set RgTmp = FtFirst.Range
-        RgTmp.Collapse wdCollapseStart
-        doc.Fields.Add RgTmp, wdFieldComments
-        Set RgTmp = FtFirst.Range
-        RgTmp.Collapse wdCollapseStart
-        FtFirst.Range.InsertBefore FixString
-    End If
-    
-    Set FtPrimary = doc.Sections(1).Footers(wdHeaderFooterPrimary)
-    If Not Left(Trim(FtPrimary.Range.Text), Len(FixString)) = FixString Then
-        SetPrimaryFooter FtPrimary, doc
-    End If
-        
-    If doc.Sections.count > 1 Then
-        Dim i As Integer
-        For i = 2 To doc.Sections.count Step 1
-            If doc.Sections(i).Footers(wdHeaderFooterEvenPages).Exists And Left(Trim(doc.Sections(i).Footers(wdHeaderFooterEvenPages).Range.Text), Len(FixString)) <> FixString Then
-                SetPrimaryFooter doc.Sections(i).Footers(wdHeaderFooterEvenPages), doc
-            End If
-            If doc.Sections(i).Footers(wdHeaderFooterFirstPage).Exists And Left(Trim(doc.Sections(i).Footers(wdHeaderFooterFirstPage).Range.Text), Len(FixString)) <> FixString Then
-                SetPrimaryFooter doc.Sections(i).Footers(wdHeaderFooterFirstPage), doc
-            End If
-            If doc.Sections(i).Footers(wdHeaderFooterPrimary).Exists And Left(Trim(doc.Sections(i).Footers(wdHeaderFooterPrimary).Range.Text), Len(FixString)) <> FixString Then
-                SetPrimaryFooter doc.Sections(i).Footers(wdHeaderFooterPrimary), doc
-            End If
-        Next
-    End If
-'************************************************************************************************************************
-'in case the Daisy code is in Header, and has other strings in it other 'PCC #'
-    'update fields
-'    For Each sc In doc.Sections
-'        If sc.Headers(wdHeaderFooterEvenPages).Exists Then
-'            sc.Headers(wdHeaderFooterEvenPages).Range.Fields.Update
-'        End If
-'        If sc.Headers(wdHeaderFooterFirstPage).Exists Then
-'            sc.Headers(wdHeaderFooterFirstPage).Range.Fields.Update
-'        End If
-'        If sc.Headers(wdHeaderFooterPrimary).Exists Then
-'            sc.Headers(wdHeaderFooterPrimary).Range.Fields.Update
-'        End If
-'    Next sc
-'
-'    'do nothing if no comments
-'    If Trim(doc.BuiltInDocumentProperties(wdPropertyComments).Value) = "" Then
-'        Exit Function
-'    End If
-'
-'
-'    'insert "PCC #<document Number><tab>" into first page's footer while keeping existing footer information
-'    Set FtFirst = doc.Sections(1).Headers(wdHeaderFooterFirstPage)
-'    If Not InStr(Trim(FtFirst.Range.Text), FixString) > 0 Then
+'    Set FtFirst = doc.Sections(1).Footers(wdHeaderFooterFirstPage)
+'    If Not Left(Trim(FtFirst.Range.Text), Len(FixString)) = FixString Then
 '        Set RgTmp = FtFirst.Range
 '        RgTmp.Collapse wdCollapseStart
 '        RgTmp.InsertBefore vbTab
@@ -201,7 +147,6 @@ Public Function PCC_Footer()
 '            End If
 '        Next
 '    End If
-'******************************************************************************************************************************************************
     Application.ScreenUpdating = True
 End Function
 

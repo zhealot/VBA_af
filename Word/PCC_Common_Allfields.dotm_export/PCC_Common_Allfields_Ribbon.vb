@@ -39,7 +39,7 @@ Public Sub subEventBeforeFooter(control As IRibbonControl)
     If Not Trim(ActiveDocument.BuiltInDocumentProperties(wdPropertyComments).Value) = "" Then
         Call PCC_Footer
     Else
-        MsgBox "No daisy footer is available yet." & vbNewLine & "Please close the document and open again in EDIT mode."
+        MsgBox "No daisy number is available yet." & vbNewLine & "Please close the document and open again in EDIT mode."
     End If
 End Sub
 
@@ -85,7 +85,7 @@ Public Sub LaunchProfileSetup(Optional SelectedUser As String = "")
 End Sub
 
 Public Sub PCCPowerpointTemplate(control As IRibbonControl)
-    LoadPPT "PowerPoint template.potx"
+    LoadPPT "PowerPoint template.pptx"
 End Sub
 
 Private Sub LoadPPT(strPPT As String)

@@ -8,10 +8,10 @@ Public Const strDefaultUserIni = "H:\User.ini"
 Public Const strWebIni = "W:\!Common\Templates\Office_2010\web.ini"
 
 '### Allfields Setup
-'Public Const strDivisionIni = "H:\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\Division.ini"
-'Public Const strQuoteIni = "H:\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\quote.ini"
-'Public Const strWebIni = "H:\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\web.ini"
-'Public Const strDefaultUserIni = "H:\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\User.ini"
+'Public Const strDivisionIni = "D:\Box Sync\1. Clients\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\Division.ini"
+'Public Const strQuoteIni = "D:\Box Sync\1. Clients\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\quote.ini"
+'Public Const strWebIni = "D:\Box Sync\1. Clients\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\web.ini"
+'Public Const strDefaultUserIni = "D:\Box Sync\1. Clients\Porirua City Council\Template Toolbar Changes August 2017\ConfigFiles\User.ini"
 
 
 Public Const MAX_INI_WRITE_ATTEMPTS = 3
