@@ -155,8 +155,14 @@ Private Sub btnOK_Click()
     Dim bm As Bookmark
     Set doc = ActiveDocument
     Me.Hide
+    
+    'unlock template first
     If doc.ProtectionType <> wdNoProtection Then
         doc.Unprotect PassWord
+        'incorrect password
+        If doc.ProtectionType <> wdNoProtection Then
+            MsgBox "Failed to unlock template, unable to proceed."
+        End If
     End If
     
     DocPrty "date", Format(Date, "dd mmmm yyyy")
@@ -250,8 +256,6 @@ Private Sub btnOK_Click()
     Case "T"    'Trust account
         DocPrty "ClientNames", IIf(tbName5.Text = "", tbName2.Text, tbName5.Text) & IIf(tbName7.Text = "", " and ", ", ") & IIf(tbName6.Text = "", tbName3.Text, tbName6.Text) & IIf(tbName7.Text = "", "", " and " & IIf(tbName8.Text = "", tbName7.Text, tbName8.Text))
         DocPrty "ClientNameFormal", tbName2.Text & IIf(tbName7.Text = "", " and ", ", ") & tbName3.Text & IIf(tbName7.Text = "", "", " and " & tbName7)
-        Debug.Print "client names: " & GetDocPrty("ClientNames")
-        Debug.Print "client formal names: " & GetDocPrty("ClientNameFormal")
         DocPrty "ClientFormal1", tbName2.Text
         DocPrty "ClientFormal2", tbName3.Text
         DocPrty "ClientFormal3", IIf(tbName7.Text = "", " ", tbName7.Text)
@@ -299,7 +303,6 @@ Private Sub btnOK_Click()
     End If
     'write client formal names
     DocPrty "ClientNameFormal", GetDocPrty("ClientFormal1") & IIf(GetDocPrty("ClientFormal2") = " ", "", IIf(GetDocPrty("ClientFormal3") = " ", " and " & GetDocPrty("ClientFormal2"), ", " & GetDocPrty("ClientFormal2") & " and " & GetDocPrty("ClientFormal3")))
-    Debug.Print "ClientNameFormal: " & GetDocPrty("ClientNameFormal")
     'insert Adviser profile and reg
     If doc.Bookmarks.Exists("AdvisorDetail") Then
         Set rg = doc.Bookmarks("AdvisorDetail").Range
@@ -354,7 +357,6 @@ Private Sub btnOK_Click()
         Else
             sTmp = "Port" & IIf(KSOnly, "KS", "Act") & Left(SchemeName, InStr(SchemeName, " ") - 1)
         End If
-        Debug.Print "Port Graph - " & sTmp
         On Error Resume Next
         Set rg = doc.Bookmarks("PortAct1").Range
         Set rgTmp = doc.AttachedTemplate.BuildingBlockEntries(sTmp).Insert(rg, True)

@@ -151,9 +151,16 @@ Function PlanClick(ob As MSForms.OptionButton)
 'handles click on plan tyep option buttons.
     PlanType = ob.Name
     DocPrty "PlanName", "Westpac " & ob.Caption
+    If ob.Caption = "Active Series included with KiwiSaver Scheme" Then
+        DocPrty "PlanNameRec", "Westpac Active Series"
+    Else
+        DocPrty "PlanNameRec", "Westpac " & ob.Caption
+    End If
     Select Case ob.Name
     Case "obActive"
         frmMain.frmScheme.Caption = "Westpac Active Series"
+        'clear status for invalid option
+        frmMain.obDefault.Value = False
         frmMain.obDefault.Enabled = False
         KiwiSaver = False
         KSOnly = False
@@ -176,6 +183,11 @@ End Function
 
 Function SchemeClick(ob As MSForms.OptionButton)
 'handles click on scheme option buttons.
+    If Not frmMain.obActive.Value And Not frmMain.obKiwiActive.Value And Not frmMain.obKiwi Then
+        MsgBox "Please choose Plan Type first."
+        ob.Value = False
+        Exit Function
+    End If
     Scheme = ob.Name
     SchemeName = ob.Caption
     'assign GG and II values
@@ -190,10 +202,10 @@ Function SchemeClick(ob As MSForms.OptionButton)
         DocPrty "FundName2", " "
         DocPrty "Blended", " "
     Case "obConservative"
-        DocPrty "GG", "20"
-        DocPrty "II", "80"
-        DocPrty "GG1", "20"
-        DocPrty "II1", "80"
+        DocPrty "GG", IIf(KSOnly, "25", "20")
+        DocPrty "II", IIf(KSOnly, "75", "80")
+        DocPrty "GG1", IIf(KSOnly, "25", "20")
+        DocPrty "II1", IIf(KSOnly, "75", "80")
         DocPrty "FundName1", IIf(KSOnly, ob.Caption, Replace(ob.Caption, "Fund", "Trust"))  'for KS only plan, use 'Fund', otherwise 'Trust'
         DocPrty "FundName2", " "
         DocPrty "Blended", " "
@@ -304,12 +316,12 @@ Function DeleteViaBm(bm As Bookmark)
     '(bookmark has a different account type, proceed delete)
     'Or (for those only shoudl exist in KiwiSaver and current Plan Type is Active)
     'Or (it's a KiwiSaver plan and bookmarked NonKiwiSaver)
-    If bm.Name = "IJ_Paragraph_8" And PlanType = "obKiwi" Then '### an ugly exception
+    If bm.Name = "IJK_Table_1" Or (bm.Name = "IJ_Paragraph_8" And PlanType = "obKiwi") Then '### an ugly exception
         Exit Function
     End If
     If InStr(AccType, AccountType) = 0 _
         Or (InStr(AccType, "K") > 0 And PlanType = "obActive") _
-        Or (KiwiSaver And InStr(AccType, "NonKiwiSaver") > 0) _
+        Or (KSOnly And InStr(AccType, "K") = 0) _
         Or (InStr(AccType, "K") = 0 And PlanType = "obKiwi") Then
         'account type selected in pop up is different from account part in bookmark
         'Or: plan type is Active only but bookmakr has K(iwiSaver) in it
