@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fmNodes 
    Caption         =   "AISA IPP Document - Applying exceptions"
-   ClientHeight    =   4635
+   ClientHeight    =   6120
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   8580
+   ClientWidth     =   11400
    OleObjectBlob   =   "AISA IPP template_fmNodes.frx":0000
    StartUpPosition =   1  'CenterOwner
 End

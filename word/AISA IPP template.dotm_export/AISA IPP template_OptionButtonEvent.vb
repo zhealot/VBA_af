@@ -11,7 +11,7 @@ Public WithEvents oOBEvents As MSForms.OptionButton
 Attribute oOBEvents.VB_VarHelpID = -1
 
 Private Sub oOBEvents_Click()
-    If oOBEvents.Caption = "Does it fall under one of the IPP exclusions?" Then
+    If oOBEvents.Caption = "None of these things" Then
         frmMain.CommandButton1.Caption = "Next"
     Else
         frmMain.CommandButton1.Caption = "Yes"

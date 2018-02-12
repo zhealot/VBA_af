@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmMain 
    Caption         =   "AISA IPP Document - Sharing Vehicles"
-   ClientHeight    =   5670
+   ClientHeight    =   6120
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   8190
+   ClientWidth     =   6780
    OleObjectBlob   =   "AISA IPP template_frmMain.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -45,6 +45,7 @@ Private Sub UserForm_Initialize()
             ReDim Preserve aryOptionButtons(cnt)
             Set aryOptionButtons(cnt).oOBEvents = ctr
             cnt = cnt + 1
+            ctr.Value = False
         End If
     Next
 End Sub
