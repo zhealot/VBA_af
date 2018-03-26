@@ -1,6 +1,6 @@
 Attribute VB_Name = "Module1"
-Public Const ShowQuestionNo = True  'could be True or False
-'-----------------------------------------------------------------------------
+Public Const ShowQuestionNo = False  'could be True or False
+'----------------------------------   -------------------------------------------
 ' Developed for DIA
 ' Created by:       Allfields Customised Solutions Limited
 ' Contact Info:     hello@allfields.co.nz, 04 978 7101
@@ -36,6 +36,7 @@ Function InitialNodes()
                 Tip:="", _
                 Answer:="", _
                 ActionNo:=0
+                
     CreateNode Name:="exit", _
                 Question:="Your application is not permitted!", _
                 YesNode:="", _
@@ -701,6 +702,7 @@ Function CreateDocument(stage As String)
     fmNodes.Hide
     Dim bm As Bookmark
     Dim rg As Range
+    doc.Paragraphs.Add
     Set rg = doc.Paragraphs.Last.Range
     If stage = "1" Then
     'finish at 1st pop up
