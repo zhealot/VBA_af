@@ -12,7 +12,9 @@ Public Const LETTERHEADER = "LetterHeader"
 Public Const SIGNINGCOVER1 = "ReportCoverFormal"
 Public Const SIGNINGCOVER2 = "ReportCoverHeader"
 Public sCover As String
+Public sBackground As String
 Public sAddress As String
+Public sBackgroundAddress As String
 Public sSigningCover As String
 Public docA As Document
 
@@ -21,30 +23,6 @@ Sub Check(control As IRibbonControl)
     'Dim docA As Document
     Set docA = ActiveDocument
     Dim rg As Range
-'    Set rg = docA.Range
-'    If SearchRange(rg) Then
-'        MsgBox HIGHLIGHTFOUNDTEXT
-'        Exit Sub
-'    End If
-
-    'look in headers & footers
-'    Dim sec As Section
-'    For Each sec In docA.Sections
-'        For i = 1 To 3  'even/first/primary
-'            If sec.Headers(i).Exists Then
-'                If SearchRange(sec.Headers(i).Range) Then
-'                    MsgBox HIGHLIGHTFOUNDTEXT
-'                    Exit Sub
-'                End If
-'            End If
-'            If sec.Footers(i).Exists Then
-'                If SearchRange(sec.Footers(i).Range) Then
-'                    MsgBox HIGHLIGHTFOUNDTEXT
-'                    Exit Sub
-'                End If
-'            End If
-'        Next i
-'    Next sec
     For Each rg In docA.StoryRanges
         If SearchRange(rg) Then
             MsgBox HIGHLIGHTFOUNDTEXT
@@ -71,15 +49,16 @@ End Sub
 'Callback for toPDF onAction
 Sub ExportPDF(control As IRibbonControl)
     '###TBD: check for multiple documents
+    On Error Resume Next
     If Not docA Is Nothing Then
         If ActiveDocument.FullName <> docA.FullName Then
-            Unload UserForm1
+            Unload fmMain
         End If
     End If
     Set docA = ActiveDocument
     docA.Activate
     docA.Windows(1).Activate
-    UserForm1.Show
+    fmMain.Show
 End Sub
 
 Sub SpellingCheckk(control As IRibbonControl)
@@ -92,43 +71,37 @@ End Sub
 
 'insert header image for Appendixheader
 Sub AppendixHeader(control As IRibbonControl)
-    Dim oApp As Application
-    Set oApp = Application
-    Dim tmp As Template
-    
-    For Each tmp In oApp.Templates
-        On Error Resume Next
-        If tmp.Name = ThisDocument.Name Then
-            Dim rg As Range
-            Set rg = Selection.Range
-            rg.Collapse wdCollapseStart
-            Set rg = tmp.BuildingBlockEntries(LETTERHEADER).Insert(rg)
-            'adjust cover page image
-            Dim sp As Shape
-            Set sp = rg.ShapeRange(1)
-            If Not sp Is Nothing Then
-                With sp
-                    .WrapFormat.Type = wdWrapBehind
-                    .LockAspectRatio = msoFalse
-                    .Top = 0
-                    .Left = 0
-                    .Width = docA.Sections(rg.Information(wdActiveEndSectionNumber)).PageSetup.PageWidth
-                End With
-            End If
-            Exit For
-        End If
-    Next tmp
+    Set docA = ActiveDocument
+    docA.Activate
+    docA.Windows(1).Activate
+    fmBackground.Show
 End Sub
 
 Public Function ChooseCover(ob As OptionButton)
     Dim ctrl As control
-    For Each ctrl In UserForm1.Controls
+    Dim aCtrls As Controls
+    'check which frame the control comes from
+    If ob.GroupName = "" Then
+        Set aCtrls = fmMain.Controls
+    ElseIf ob.GroupName = "Background" Then
+        Set aCtrls = fmBackground.Controls
+    End If
+    
+    'hide/show preview image
+    For Each ctrl In aCtrls
         If Left(ctrl.Name, 3) = "img" Then
             ctrl.Visible = IIf(Right(ctrl.Name, Len(ctrl.Name) - 3) = Right(ob.Name, Len(ob.Name) - 2), True, False)
         End If
-    Next
-    sCover = Right(ob.Name, Len(ob.Name) - 2)
-    ControlSwitch UserForm1.fmFooter, IIf(sCover = LETTERHEADER, True, False)
+    Next ctrl
+    
+    'asign value
+    If ob.GroupName = "" Then
+        sCover = Right(ob.Name, Len(ob.Name) - 2)
+        ControlSwitch fmMain.fmFooter, IIf(sCover = LETTERHEADER, True, False)
+    ElseIf ob.GroupName = "Background" Then
+        sBackground = Right(ob.Name, Len(ob.Name) - 2)
+        ControlSwitch fmBackground.fmFooter, IIf(sBackground = LETTERHEADER, True, False)
+    End If
 End Function
 
 Public Function ChooseSigningCover(ob As OptionButton)
@@ -147,6 +120,11 @@ End Function
 Public Function ChooseFooter(ob As OptionButton)
     sAddress = Right(ob.Name, Len(ob.Name) - 2)
 End Function
+
+Public Function ChooseBackgroundFooter(ob As OptionButton)
+    sBackgroundAddress = Right(ob.Name, Len(ob.Name) - 2)
+End Function
+
 
 Public Function ControlSwitch(ctr As control, YesNo As Boolean)
     ctr.Enabled = YesNo
