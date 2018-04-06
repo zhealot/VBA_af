@@ -10,5 +10,6 @@ Attribute VB_Exposed = True
 Private Sub Document_Open()
     On Error Resume Next
     Application.DisplayDocumentInformationPanel = True
+    Call Allfields.AutoExec
 End Sub
 

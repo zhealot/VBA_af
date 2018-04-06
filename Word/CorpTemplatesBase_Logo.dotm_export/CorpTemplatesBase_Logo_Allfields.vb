@@ -1,10 +1,22 @@
 Attribute VB_Name = "Allfields"
+Option Explicit
+Dim oWithEvent As New EventsClass
+'module to hold ribbon button code
 Const Style1 = "Instructional Text"
 Const Style2 = "Instructional Text Bullets"
 Public Const DOCUMENTPROPERTY = "Category" 'document property name to hold business group
-Public BusinessGroup As String  'Business Group name
 Public sBG As String 'short business group name
 Public docA As Document
+
+
+Public Sub AutoExec()
+    Set oWithEvent.oWdApp = Word.Application
+End Sub
+
+Public Sub OnLoad(control As IRibbonControl)
+    MsgBox "on open"
+    Call AutoExec
+End Sub
 
 Public Sub ShowDIP(control As IRibbonControl)
     On Error Resume Next
@@ -24,6 +36,7 @@ Public Sub RemoveInstructions(control As IRibbonControl)
     
     'Smart cut & paste' setting must be false so that deleting the last paragraph
     'in a table cell doesn't change the style
+    
     boolSmartCutPaste = Options.PasteSmartCutPaste
     Options.PasteSmartCutPaste = False
     
@@ -86,7 +99,7 @@ Bye:
     Else
         MsgText = "No instructions were found."
     End If
-    MsgBox MsgText, vbInformation, MED
+    'MsgBox MsgText, vbInformation, MED
 End Sub
 
 Public Sub Logo(control As IRibbonControl)
@@ -104,4 +117,81 @@ Public Function OBClick(ob As control)
             ctl.Visible = False
         End If
     Next ctl
+End Function
+
+Public Function SetLogo(docA As Document)
+    'Dim docA As Document
+    Dim rg As Range
+    Dim rgTmp As Range
+    Dim rgCurrent As Range
+    Dim oApp As Word.Application
+    Dim tmp As Template
+    Set oApp = Word.Application
+    oApp.ScreenUpdating = False
+    'check if Business Group is set
+    If sBG = "" Then
+        sBG = ReadBG
+    End If
+    If sBG = "" Then
+        Exit Function
+    End If
+    'set range to whole current page
+    Set rg = docA.Content
+    rg.Collapse wdCollapseStart
+    Dim iSec As Integer
+    Dim iHdr As Integer
+    Dim SeekView As Long
+    Dim docTmp As Template
+    Dim spOri As Shape  'original shape
+    Dim spNew As Shape  'new shape
+    For Each docTmp In oApp.Templates
+        If docTmp.Name = ThisDocument.Name Then
+            For iSec = 1 To docA.Sections.Count
+                For iHdr = 1 To 3   'check header in primary/evenpage/firstpage
+                    If docA.Sections(iSec).Headers(iHdr).Exists Then
+                        'docA.ActiveWindow.View.SeekView = wdSeekCurrentPageHeader
+                        Set rg = docA.Sections(iSec).Headers(iHdr).Range
+                        If rg.ShapeRange.Count > 0 Then
+                            Set spOri = rg.ShapeRange(1)
+                            rg.Collapse wdCollapseEnd
+                            Set rgTmp = docTmp.BuildingBlockEntries(sBG).Insert(rg)
+                            Set spNew = rgTmp.ShapeRange(1)
+                            'spNew.RelativeHorizontalPosition = spOri.RelativeHorizontalPosition
+                            'spNew.RelativeHorizontalSize = spOri.RelativeHorizontalSize
+                            spNew.RelativeVerticalPosition = spOri.RelativeVerticalPosition
+                            spNew.RelativeVerticalSize = spOri.RelativeVerticalSize
+                            spNew.LockAspectRatio = spOri.LockAspectRatio
+                            spNew.Height = spOri.Height
+                            'spNew.Width = spOri.Width
+                            spNew.WrapFormat.Type = spOri.WrapFormat.Type
+                            spNew.Left = wdShapeRight 'spOri.Left
+                            spNew.Top = spOri.Top
+                            spOri.Delete
+                        End If
+                    End If
+                Next iHdr
+            Next iSec
+            Exit For
+        End If
+    Next docTmp
+    For Each docTmp In oApp.Templates
+        If LCase(docTmp) = "normal.dotm" Then
+            docTmp.BuiltInDocumentProperties(DOCUMENTPROPERTY) = sBG
+            docTmp.Save
+            Exit For
+        End If
+    Next docTmp
+    oApp.ScreenUpdating = True
+End Function
+
+Public Function ReadBG() As String
+    If LCase(ActiveDocument.Name) = "normal.dotm" Then
+        Exit Function
+    End If
+    Dim tp As Template
+    For Each tp In Application.Templates
+        If LCase(tp.Name) = "normal.dotm" Then
+            ReadBG = tp.BuiltInDocumentProperties(DOCUMENTPROPERTY)
+        End If
+    Next tp
 End Function
