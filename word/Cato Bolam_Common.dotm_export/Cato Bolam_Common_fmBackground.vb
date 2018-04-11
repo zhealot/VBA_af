@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fmBackground 
    Caption         =   "Background Image"
-   ClientHeight    =   10005
+   ClientHeight    =   9225
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   8235
@@ -118,18 +118,14 @@ Private Sub cbtOK_Click()
                     End With
                 End If
             Else
-'                'set first page text colour
-'                Set rg = docA.Content
-'                rg.Collapse wdCollapseStart
-'                Set rg = rg.GoTo(wdGoToPage, , 2)
-'                'set rg to be 1st page
-'                rg.SetRange 0, rg.End - 1
-'                Select Case sCover
-'                Case "FullCover"
-'                    rg.Font.ColorIndex = wdWhite
-'                Case Else
-'                    rg.Font.ColorIndex = wdBlack
-'                End Select
+                'set first page text colour
+                Set rg = rgCurrent
+                Select Case sCover
+                Case "FullCover"
+                    rg.Font.ColorIndex = wdWhite
+                Case Else
+                    rg.Font.ColorIndex = wdBlack
+                End Select
             End If  'if sCover = LETTERHEADER
             Exit For
         End If  'tmp.Name = ThisDocument.Name

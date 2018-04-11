@@ -48,17 +48,11 @@ End Sub
 
 'Callback for toPDF onAction
 Sub ExportPDF(control As IRibbonControl)
-    '###TBD: check for multiple documents
-    On Error Resume Next
-    If Not docA Is Nothing Then
-        If ActiveDocument.FullName <> docA.FullName Then
-            Unload fmMain
-        End If
-    End If
-    Set docA = ActiveDocument
-    docA.Activate
-    docA.Windows(1).Activate
-    fmMain.Show
+    'dialogue to save as PDF
+    With Application.Dialogs(wdDialogFileSaveAs)
+        .Format = wdFormatPDF
+        .Show
+    End With
 End Sub
 
 Sub SpellingCheckk(control As IRibbonControl)
@@ -70,7 +64,14 @@ Sub SpellingCheckk(control As IRibbonControl)
 End Sub
 
 'insert header image for Appendixheader
-Sub AppendixHeader(control As IRibbonControl)
+Sub BakgroundImage(control As IRibbonControl)
+    '###TBD: check for multiple documents
+    On Error Resume Next
+    If Not docA Is Nothing Then
+        If ActiveDocument.FullName <> docA.FullName Then
+            Unload fmMain
+        End If
+    End If
     Set docA = ActiveDocument
     docA.Activate
     docA.Windows(1).Activate

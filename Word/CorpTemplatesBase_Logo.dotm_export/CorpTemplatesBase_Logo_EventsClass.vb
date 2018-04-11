@@ -10,7 +10,7 @@ Attribute VB_Exposed = False
 Public WithEvents oWdApp As Word.Application
 Attribute oWdApp.VB_VarHelpID = -1
 
-Private Sub oWdApp_DocumentOpen(ByVal Doc As Document)
+Private Sub oWdApp_DocumentOpen(ByVal doc As Document)
 '    MsgBox "opeeeeen"
-    Call SetLogo(Doc)
+    Call SetLogo(doc)
 End Sub

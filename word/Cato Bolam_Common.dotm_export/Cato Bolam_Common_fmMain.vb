@@ -149,12 +149,6 @@ Private Sub cbtOK_Click()
             End If
         Next tmp
     End If
-
-    'dialogue to save as PDF
-    With oApp.Dialogs(wdDialogFileSaveAs)
-        .Format = wdFormatPDF
-        .Show
-    End With
 End Sub
 
 Private Sub obFullCover_Click()
