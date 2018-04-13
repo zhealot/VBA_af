@@ -23,6 +23,6 @@ End Sub
 Private Sub Document_Open()
     On Error Resume Next
     Application.DisplayDocumentInformationPanel = True
-    Call Allfields.AutoExec
+    SetLogo ActiveDocument
 End Sub
 

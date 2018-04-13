@@ -41,31 +41,13 @@ Private Sub cbtOK_Click()
     'Dim docA As Document
     Dim rg As Range
     Dim rgTmp As Range
-    Dim rgCurrent As Range
     Dim oApp As Word.Application
     Dim tmp As Template
     Dim sp As Shape
     Set oApp = Word.Application
     
     'set range to whole current page
-    Set rg = Selection.Range
-    rg.Collapse wdCollapseStart
-    If docA.Content.Information(wdNumberOfPagesInDocument) = 1 Then     'in case document has only one page
-        Set rg = docA.Content
-    Else    'more than one page
-        'set rg to the start of current page
-        Set rg = rg.GoTo(wdGoToPage, , rg.Information(wdActiveEndPageNumber))
-        'if current page is the last page
-        If rg.Information(wdActiveEndPageNumber) = docA.Content.Information(wdNumberOfPagesInDocument) Then
-            rg.SetRange rg.Start, docA.Content.End
-        Else    'not in the last page
-            Set rgTmp = rg.GoTo(wdGoToPage, , rg.Information(wdActiveEndPageNumber) + 1)
-            rg.SetRange rg.Start, rgTmp.Start - 1
-        End If
-    End If
-    
-    'keep current page range
-    Set rgCurrent = rg
+    Set rg = CurrentPageRange(docA)
     
     'check if there's a background image, delete it
     If rg.ShapeRange.Count > 0 Then
@@ -75,15 +57,17 @@ Private Sub cbtOK_Click()
             End If
         Next i
     End If
-     
+    'clear background then exit
+    If sBackground = "NoCover" Then Exit Sub
+    
      'set rg to start of current page
-    Set rg = rgCurrent
+    Set rg = CurrentPageRange(docA)
     rg.Collapse wdCollapseStart
     For Each tmp In oApp.Templates
         On Error Resume Next
         If tmp.Name = ThisDocument.Name Then
             'insert first page cover to background
-            Set rg = tmp.BuildingBlockEntries(IIf(sBackground = "AppendixHeader", "LetterHeader", sBackground)).Insert(rg) 'for Appendix Header, use Letter Header image
+            Set rg = tmp.BuildingBlockEntries(sBackground).Insert(rg)  'for Appendix Header, use Letter Header image
             'adjust cover page image
             Set sp = rg.ShapeRange(1)
             If Not sp Is Nothing Then
@@ -93,7 +77,7 @@ Private Sub cbtOK_Click()
                     .Top = 0
                     .Left = 0
                     .Width = rg.PageSetup.PageWidth
-                    If sBackground <> LETTERHEADER And sBackground <> "AppendixHeader" Then
+                    If sBackground <> LETTERHEADER Then
                         .Height = rg.PageSetup.PageHeight
                     End If
                 End With
@@ -102,7 +86,7 @@ Private Sub cbtOK_Click()
             'insert footer for Letter Header cover
             Set sp = Nothing
             If sBackground = LETTERHEADER Then
-                Set rg = rgCurrent
+                Set rg = CurrentPageRange(docA)
                 rg.Collapse wdCollapseStart
                 Set rg = tmp.BuildingBlockEntries(LETTERHEADER & sBackgroundAddress).Insert(rg)
                 Set sp = rg.ShapeRange(1)
@@ -119,8 +103,8 @@ Private Sub cbtOK_Click()
                 End If
             Else
                 'set first page text colour
-                Set rg = rgCurrent
-                Select Case sCover
+                Set rg = CurrentPageRange(docA)
+                Select Case sBackground
                 Case "FullCover"
                     rg.Font.ColorIndex = wdWhite
                 Case Else
@@ -132,10 +116,6 @@ Private Sub cbtOK_Click()
     Next
 End Sub
 
-Private Sub obAppendixHeader_Click()
-    Call ChooseCover(obAppendixHeader)
-End Sub
-
 Private Sub obFullCover_Click()
     Call ChooseCover(obFullCover)
 End Sub
@@ -144,6 +124,9 @@ Private Sub obLetterHeader_Click()
     Call ChooseCover(obLetterHeader)
 End Sub
 
+Private Sub obNoCover_Click()
+    Call ChooseCover(obNoCover)
+End Sub
 
 Private Sub obReportCoverFormal_Click()
     Call ChooseCover(obReportCoverFormal)
@@ -167,10 +150,6 @@ End Sub
 
 Private Sub obOrewa_Click()
     Call ChooseBackgroundFooter(obOrewa)
-End Sub
-
-Private Sub OptionButton1_Click()
-
 End Sub
 
 Private Sub UserForm_Initialize()

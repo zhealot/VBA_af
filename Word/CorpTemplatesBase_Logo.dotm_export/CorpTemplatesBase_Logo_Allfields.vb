@@ -4,22 +4,125 @@ Dim oWithEvent As New EventsClass
 'module to hold ribbon button code
 Const Style1 = "Instructional Text"
 Const Style2 = "Instructional Text Bullets"
-Const SERVERPROPERTY = "Portfolio"  'property to read from server
+Const SERVERPROPERTY = "MPIPortfolio"  'property to read from server
 Const HEADER_TOP_TO_PAGE = 1.2
-Const HEADER_LEFT_TO_PAGE = 11.3
-Const FOOTER_TOP_TO_PAGE = 27
+Const HEADER_RIGHT_TO_PAGE = 1.1  'distance of header logo right side  to page right side, in centimeter
+Const FOOTER_BOTTOM_TO_PAGE = 1.13  'distance of footer logo bottom side to page bottom side, in centimeter
 Const FOOTER_LEFT_TO_PAGE = 1.2
 Const HEADER_LOGO_WIDTH = 8.6
 Const FOOTER_LOGO_WIDTH = 6.2
 Public Const DOCUMENTPROPERTY = "Category" 'document property name to hold business group
 Public sBG As String 'short business group name
-Public doca As Document
-
-
+Public docA As Document
 
 Public Sub AutoExec()
     Set oWithEvent.oWdApp = Word.Application
 End Sub
+
+Public Function SetLogo(docA As Document, Optional sPty As String = "")
+'sPty is used for bath convert document based on document server property
+    Application.ScreenUpdating = False
+    'Dim docA As Document
+    Dim rg As Range
+    Dim rgTmp As Range
+    Dim rgCurrent As Range
+    Dim oApp As Word.Application
+    Dim tmp As Template
+    Set oApp = Word.Application
+    oApp.ScreenUpdating = False
+    'check if Business Group is set
+    If sBG = "" Then
+        sBG = ReadBG
+    End If
+    If sPty <> "" Then
+        sBG = ReadServerProperty(docA, SERVERPROPERTY)
+    End If
+    If sBG = "" Then
+        Exit Function
+    End If
+    'set range to whole current page
+    Set rg = docA.Content
+    rg.Collapse wdCollapseStart
+    Dim SeekView As Long
+    Dim docTmp As Template
+    Dim spNew As Shape  'new shape
+    For Each docTmp In oApp.Templates
+        If docTmp.Name = ThisDocument.Name Then
+            'set first page header if any, otherwise set section 1 primary header
+            If docA.Sections(1).Headers(wdHeaderFooterFirstPage).Exists Then
+                Set rg = docA.Sections(1).Headers(wdHeaderFooterFirstPage).Range
+            Else
+                Set rg = docA.Sections(1).Headers(wdHeaderFooterPrimary).Range
+            End If
+            'delete existing logo
+            If rg.ShapeRange.Count > 0 Then
+                rg.ShapeRange(1).Delete
+            End If
+            rg.Collapse wdCollapseEnd
+            Set rgTmp = docTmp.BuildingBlockEntries(sBG).Insert(rg)
+            Set spNew = rgTmp.ShapeRange(1)
+            spNew.LockAspectRatio = msoTrue
+            spNew.Width = CentimetersToPoints(HEADER_LOGO_WIDTH)
+            spNew.WrapFormat.Type = wdWrapSquare
+            spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
+            spNew.Left = docA.Sections(1).PageSetup.PageWidth - spNew.Width - CentimetersToPoints(HEADER_RIGHT_TO_PAGE)
+            spNew.RelativeVerticalPosition = wdRelativeVerticalPositionPage
+            spNew.Top = CentimetersToPoints(HEADER_TOP_TO_PAGE)
+            
+            'deal with the footer part
+            If docA.Sections(1).Footers(wdHeaderFooterFirstPage).Exists Then
+                Set rg = docA.Sections(1).Footers(wdHeaderFooterFirstPage).Range
+            Else
+                Set rg = docA.Sections(1).Footers(wdHeaderFooterPrimary).Range
+            End If
+            'delete existing logo
+            If rg.ShapeRange.Count > 0 Then
+                Dim i As Integer
+                For i = rg.ShapeRange.Count To 1 Step -1
+                    If rg.ShapeRange(i).Title = "MPI" Then
+                        rg.ShapeRange(i).Delete
+                    End If
+                Next i
+            End If
+            'insert footer logo is necessary
+            Select Case sBG
+            Case "Bio", "Fis", "NZF"    'for those groups, insert MPI logo
+                rg.Collapse wdCollapseStart
+                Set rgTmp = docTmp.BuildingBlockEntries("mpi").Insert(rg)
+                If rgTmp.ShapeRange.Count > 0 Then
+                    Set spNew = rgTmp.ShapeRange(1)
+                    spNew.LockAspectRatio = msoCTrue
+                    spNew.Width = CentimetersToPoints(FOOTER_LOGO_WIDTH)
+                    spNew.WrapFormat.Type = wdWrapBehind    'use wrap behind for footer
+                    spNew.WrapFormat.AllowOverlap = False
+                    spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
+                    spNew.Left = CentimetersToPoints(FOOTER_LEFT_TO_PAGE)
+                    spNew.RelativeVerticalPosition = wdRelativeVerticalPositionPage
+                    spNew.Top = docA.Sections(1).PageSetup.PageHeight - spNew.Height - CentimetersToPoints(FOOTER_BOTTOM_TO_PAGE)
+                End If
+            Case "For", "MPI"           'for those groups, delete MPI logo
+                If rg.ShapeRange.Count > 0 Then
+                    Set spNew = rg.ShapeRange(1)
+                    If spNew.Title = "MPI" Then
+                        spNew.Delete
+                    End If
+                End If
+            Case Else
+            End Select
+        End If
+    Next docTmp
+    'for non-bath convert call, write back to normal.dotm
+    If sPty = "" Then
+        For Each docTmp In oApp.Templates
+            If LCase(docTmp) = "normal.dotm" Then
+                docTmp.BuiltInDocumentProperties(DOCUMENTPROPERTY) = sBG
+                docTmp.Save
+                Exit For
+            End If
+        Next docTmp
+    End If
+    oApp.ScreenUpdating = True
+End Function
 
 Public Sub ShowDIP(control As IRibbonControl)
     On Error Resume Next
@@ -122,116 +225,6 @@ Public Function OBClick(ob As control)
     Next ctl
 End Function
 
-Public Function SetLogo(doca As Document, Optional sPty As String = "")
-'sPty is used for bath convert document based on document server property
-    Application.ScreenUpdating = False
-    'Dim docA As Document
-    Dim rg As Range
-    Dim rgTmp As Range
-    Dim rgCurrent As Range
-    Dim oApp As Word.Application
-    Dim tmp As Template
-    Set oApp = Word.Application
-    oApp.ScreenUpdating = False
-    'check if Business Group is set
-    If sPty <> "" Then
-        sBG = ReadServerProperty(doca, SERVERPROPERTY)
-    End If
-    If sBG = "" Then
-        Exit Function
-    End If
-    'set range to whole current page
-    Set rg = doca.Content
-    rg.Collapse wdCollapseStart
-    Dim iSec As Integer
-    Dim iHdr As Integer
-    Dim SeekView As Long
-    Dim docTmp As Template
-    Dim spOri As Shape  'original shape
-    Dim spNew As Shape  'new shape
-    For Each docTmp In oApp.Templates
-        If docTmp.Name = ThisDocument.Name Then
-            For iSec = 1 To doca.Sections.Count
-                For iHdr = 1 To 3   'check header in primary/evenpage/firstpage
-                    If doca.Sections(iSec).Headers(iHdr).Exists Then
-                        'docA.ActiveWindow.View.SeekView = wdSeekCurrentPageHeader
-                        Set rg = doca.Sections(iSec).Headers(iHdr).Range
-                        If rg.ShapeRange.Count > 0 Then
-                            Set spOri = rg.ShapeRange(1)
-                            spOri.Delete
-                            rg.Collapse wdCollapseEnd
-                            Set rgTmp = docTmp.BuildingBlockEntries(sBG).Insert(rg)
-                            Set spNew = rgTmp.ShapeRange(1)
-                            spNew.LockAspectRatio = msoTrue
-                            spNew.Width = CentimetersToPoints(HEADER_LOGO_WIDTH)
-                            spNew.WrapFormat.Type = wdWrapBehind
-                            spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
-                            spNew.Left = CentimetersToPoints(HEADER_LEFT_TO_PAGE)
-                            spNew.RelativeVerticalPosition = wdRelativeVerticalPositionPage
-                            spNew.TOP = CentimetersToPoints(HEADER_TOP_TO_PAGE)
-                        End If
-                    End If
-                    'deal with the footer part
-                    If doca.Sections(iSec).Footers(iHdr).Exists Then
-                        Set rg = doca.Sections(iSec).Footers(iHdr).Range
-                        'delete existing logo
-                        If rg.ShapeRange.Count > 0 Then
-                            Dim i As Integer
-                            For i = rg.ShapeRange.Count To 1 Step -1
-                                If rg.ShapeRange(i).Title = "MPI" Then
-                                    rg.ShapeRange(i).Delete
-                                End If
-                            Next i
-                        End If
-                        Select Case sBG
-                        Case "Bio", "Fis", "NZF"    'for those groups, insert MPI logo
-                            If rg.ShapeRange.Count > 0 Then
-                                If rg.ShapeRange(1).Title = "mpi" Then
-                                    rg.ShapeRange(1).Delete
-                                End If
-                            End If
-                            rg.Collapse wdCollapseStart
-                            Set rgTmp = docTmp.BuildingBlockEntries("mpi").Insert(rg)
-                            If rgTmp.ShapeRange.Count > 0 Then
-                                Set spNew = rgTmp.ShapeRange(1)
-                                spNew.LockAspectRatio = msoCTrue
-                                spNew.Width = CentimetersToPoints(FOOTER_LOGO_WIDTH)
-                                spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
-                                spNew.Left = CentimetersToPoints(FOOTER_LEFT_TO_PAGE)
-                                spNew.RelativeVerticalPosition = wdRelativeVerticalPositionPage
-                                spNew.TOP = CentimetersToPoints(FOOTER_TOP_TO_PAGE)
-                            End If
-                        Case "For", "MPI"           'for those groups, delete MPI logo
-                            If rg.ShapeRange.Count > 0 Then
-                                Set spNew = rg.ShapeRange(1)
-                                If spNew.Title = "MPI" Then
-                                    spNew.Delete
-                                End If
-                            End If
-                        Case Else
-                        End Select
-                        Set rg = doca.Sections(iSec).Footers(iHdr).Range
-                        If rg.ShapeRange.Count > 0 Then
-                        End If
-                    End If
-                Next iHdr
-            Next iSec
-            Exit For
-        End If
-    Next docTmp
-    'for non-bath convert call, write back to normal.dotm
-    If sPty = "" Then
-        For Each docTmp In oApp.Templates
-            If LCase(docTmp) = "normal.dotm" Then
-                docTmp.BuiltInDocumentProperties(DOCUMENTPROPERTY) = sBG
-                docTmp.Save
-                Exit For
-            End If
-        Next docTmp
-    End If
-    oApp.ScreenUpdating = True
-End Function
-
 'read document property from normal.dotm
 Public Function ReadBG() As String
     If LCase(ActiveDocument.Name) = "normal.dotm" Then
@@ -250,33 +243,69 @@ Public Function ReadServerProperty(doc As Document, pty As String) As String
     ReadServerProperty = ""
     If Trim(pty) = "" Then Exit Function
     On Error Resume Next
-    ReadServerProperty = doc.CustomDocumentProperties(pty)
+    Dim s As String
+    s = doc.CustomDocumentProperties(pty)
+    If InStr(s, "Biosecurity") > 0 Then
+        ReadServerProperty = "Bio"
+    ElseIf InStr(s, "Fisheries") > 0 Then
+        ReadServerProperty = "Fis"
+    ElseIf InStr(s, "Forestry") > 0 Then
+        ReadServerProperty = "For"
+    ElseIf InStr(s, "Food Safety") > 0 Then
+        ReadServerProperty = "NZF"
+    ElseIf InStr(s, "Primary Industries") > 0 Then
+        ReadServerProperty = "MPI"
+    End If
 End Function
 
 Public Function FixLogos(sPath As String)
-    'check folder exists
-    If Trim(sPath) = "" Or Dir(sPath, vbDirectory) = "" Then Exit Function
     Const EXT = "*.docx"    'file type
     Dim File As String
     Dim doc As Document
-    'look if folder contains valid file (has a number in filename)
-    File = Dir(sPath & EXT, vbNormal)
-    While File <> ""
-        Set doc = Documents.Open(sPath & File, ConfirmConversions:=False, ReadOnly:=False, Visible:=True)
-        DoEvents
-        If Not doc Is Nothing Then
-            Call SetLogo(doc, SERVERPROPERTY)
-            doc.Save
-            doc.Close
-            Set doc = Nothing
+    
+    If LCase(Left(sPath, 4)) = "http" Then  'for Sharepoint server address
+        Dim oNet As Object
+        Dim fs As Object
+        Dim oFolder As Object
+        Dim oFile As Object
+        Set oNet = CreateObject("WScript.Network")
+        Set fs = CreateObject("Scripting.FileSystemObject")
+        oNet.mapnetworkdrive "A:", sPath
+        Set oFolder = fs.GetFolder("A:")
+
+        For Each oFile In oFolder.Files
+            Set doc = Documents.Open(sPath & oFile, ConfirmConversions:=False, ReadOnly:=False, Visible:=True)
             DoEvents
-        End If
-        File = Dir  'get next file
-    Wend   'end While File<>""
+            If Not doc Is Nothing Then
+                Call SetLogo(doc, SERVERPROPERTY)
+                doc.Save
+                doc.Close
+                Set doc = Nothing
+                DoEvents
+            End If
+        Next oFile
+        oNet.removenetworkdrive "A:"
+    Else                                    'for local folder address
+        'check folder exists
+        If Trim(sPath) = "" Or Dir(sPath, vbDirectory) = "" Then Exit Function
+        'look if folder contains valid file (has a number in filename)
+        File = Dir(sPath & EXT, vbNormal)
+        While File <> ""
+            Set doc = Documents.Open(sPath & File, ConfirmConversions:=False, ReadOnly:=False, Visible:=True)
+            DoEvents
+            If Not doc Is Nothing Then
+                Call SetLogo(doc, SERVERPROPERTY)
+                doc.Save
+                doc.Close
+                Set doc = Nothing
+                DoEvents
+            End If
+            File = Dir  'get next file
+        Wend   'end While File<>""
+    End If
 End Function
 
 Sub etset()
     On Error Resume Next
     Debug.Print ActiveDocument.CustomDocumentProperties("Sdfksd234")
-    
 End Sub

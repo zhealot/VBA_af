@@ -82,12 +82,7 @@ Public Function ChooseCover(ob As OptionButton)
     Dim ctrl As control
     Dim aCtrls As Controls
     'check which frame the control comes from
-    If ob.GroupName = "" Then
-        Set aCtrls = fmMain.Controls
-    ElseIf ob.GroupName = "Background" Then
-        Set aCtrls = fmBackground.Controls
-    End If
-    
+    Set aCtrls = fmBackground.Controls
     'hide/show preview image
     For Each ctrl In aCtrls
         If Left(ctrl.Name, 3) = "img" Then
@@ -96,26 +91,8 @@ Public Function ChooseCover(ob As OptionButton)
     Next ctrl
     
     'asign value
-    If ob.GroupName = "" Then
-        sCover = Right(ob.Name, Len(ob.Name) - 2)
-        ControlSwitch fmMain.fmFooter, IIf(sCover = LETTERHEADER, True, False)
-    ElseIf ob.GroupName = "Background" Then
-        sBackground = Right(ob.Name, Len(ob.Name) - 2)
-        ControlSwitch fmBackground.fmFooter, IIf(sBackground = LETTERHEADER, True, False)
-    End If
-End Function
-
-Public Function ChooseSigningCover(ob As OptionButton)
-    sSigningCover = Right(ob.Name, Len(ob.Name) - 2)
-    'name casting
-    Select Case sSigningCover
-    Case "SigningCover1"
-        sSigningCover = SIGNINGCOVER1
-    Case "SigningCover2"
-        sSigningCover = SIGNINGCOVER2
-    Case Else
-        sSigningCover = ""
-    End Select
+    sBackground = Right(ob.Name, Len(ob.Name) - 2)
+    ControlSwitch fmBackground.fmFooter, IIf(sBackground = LETTERHEADER, True, False)
 End Function
 
 Public Function ChooseFooter(ob As OptionButton)
@@ -160,4 +137,27 @@ Public Function SearchRange(rg As Range) As Boolean
         End If
         SearchRange = .Found
     End With
+End Function
+
+'return current page range
+Public Function CurrentPageRange(doc As Document) As Range
+    Dim rg As Range
+    Dim rgTmp As Range
+    
+    Set rg = Selection.Range
+    rg.Collapse wdCollapseStart
+    If docA.Content.Information(wdNumberOfPagesInDocument) = 1 Then     'in case document has only one page
+        Set rg = docA.Content
+    Else    'more than one page
+        'set rg to the start of current page
+        Set rg = rg.GoTo(wdGoToPage, , rg.Information(wdActiveEndPageNumber))
+        'if current page is the last page
+        If rg.Information(wdActiveEndPageNumber) = docA.Content.Information(wdNumberOfPagesInDocument) Then
+            rg.SetRange rg.Start, docA.Content.End
+        Else    'not in the last page
+            Set rgTmp = rg.GoTo(wdGoToPage, , rg.Information(wdActiveEndPageNumber) + 1)
+            rg.SetRange rg.Start, rgTmp.Start - 1
+        End If
+    End If
+    Set CurrentPageRange = rg
 End Function
