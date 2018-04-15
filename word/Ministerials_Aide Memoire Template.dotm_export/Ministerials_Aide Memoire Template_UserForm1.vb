@@ -129,6 +129,7 @@ Private Sub cmbOK_Click()
         For Each tmp In Application.Templates
             If tmp.Name = ThisDocument.Name Then
                 Set rg = tmp.BuildingBlockEntries(sOthers).Insert(rg)
+                HasLogo = True
                 With rg.InlineShapes(1)
                     .Title = "others"
                     .LockAspectRatio = msoTrue

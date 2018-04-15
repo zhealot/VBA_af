@@ -23,6 +23,10 @@ End Sub
 Private Sub Document_Open()
     On Error Resume Next
     Application.DisplayDocumentInformationPanel = True
-    SetLogo ActiveDocument
+    'exception for certain document
+    If InStr(LCase(ActiveDocument.Name), LCase("Letterhead Template for Printed Letterhead")) > 0 Then
+        Exit Sub
+    End If
+    Call SetLogo(ActiveDocument)
 End Sub
 

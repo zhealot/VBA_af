@@ -70,19 +70,29 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
             spNew.Top = CentimetersToPoints(HEADER_TOP_TO_PAGE)
             
             'deal with the footer part
+            'delete all images in footer in all sections
+            Dim sec As Section
+            For Each sec In docA.Sections
+                Dim iFt As Integer
+                For iFt = 1 To 3
+                    If sec.Footers(iFt).Exists Then
+                        Set rg = sec.Footers(iFt).Range
+                        If rg.ShapeRange.Count > 0 Then
+                            Dim i As Integer
+                            For i = rg.ShapeRange.Count To 1 Step -1
+                                'If rg.ShapeRange(i).Title = "MPI" Then
+                                    rg.ShapeRange(i).Delete
+                                'End If
+                            Next i
+                        End If
+                    End If
+                Next iFt
+            Next sec
+            'set range
             If docA.Sections(1).Footers(wdHeaderFooterFirstPage).Exists Then
                 Set rg = docA.Sections(1).Footers(wdHeaderFooterFirstPage).Range
             Else
                 Set rg = docA.Sections(1).Footers(wdHeaderFooterPrimary).Range
-            End If
-            'delete existing logo
-            If rg.ShapeRange.Count > 0 Then
-                Dim i As Integer
-                For i = rg.ShapeRange.Count To 1 Step -1
-                    If rg.ShapeRange(i).Title = "MPI" Then
-                        rg.ShapeRange(i).Delete
-                    End If
-                Next i
             End If
             'insert footer logo is necessary
             Select Case sBG
@@ -93,7 +103,7 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
                     Set spNew = rgTmp.ShapeRange(1)
                     spNew.LockAspectRatio = msoCTrue
                     spNew.Width = CentimetersToPoints(FOOTER_LOGO_WIDTH)
-                    spNew.WrapFormat.Type = wdWrapBehind    'use wrap behind for footer
+                    spNew.WrapFormat.Type = wdWrapSquare
                     spNew.WrapFormat.AllowOverlap = False
                     spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
                     spNew.Left = CentimetersToPoints(FOOTER_LEFT_TO_PAGE)
