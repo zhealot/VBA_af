@@ -68,7 +68,7 @@ Private Sub cmbOK_Click()
     Dim rg As Range
     Dim sp As InlineShape
     Dim HasLogo As Boolean 'row has any logo shown
-    Set doc = ThisDocument
+    Set doc = ActiveDocument
     'save selected value to custom document properties
     doc.CustomDocumentProperties(PROPERTYNAME).Value = IIf(sLogos = "", " ", sLogos)
     doc.CustomDocumentProperties("others").Value = IIf(sOthers = "", " ", sOthers)
@@ -130,11 +130,15 @@ Private Sub cmbOK_Click()
             If tmp.Name = ThisDocument.Name Then
                 Set rg = tmp.BuildingBlockEntries(sOthers).Insert(rg)
                 HasLogo = True
-                With rg.InlineShapes(1)
-                    .Title = "others"
-                    .LockAspectRatio = msoTrue
-                    .Width = CentimetersToPoints(5 + 1.6 * iCounter)
-                End With
+                Set rg = doc.Bookmarks(LOGOBOOKMARK2).Range.Cells(1).Range
+                'Dim sp As Shape
+                For Each sp In rg.InlineShapes
+                    If sp.Title = "" Then
+                        sp.Title = "others"
+                        sp.LockAspectRatio = msoTrue
+                        sp.Width = CentimetersToPoints(5 + 1.6 * iCounter)
+                    End If
+                Next sp
             End If
         Next tmp
     End If
@@ -148,8 +152,8 @@ End Sub
 Private Sub UserForm_Initialize()
     On Error Resume Next
     'get logos
-    sLogos = ThisDocument.CustomDocumentProperties(PROPERTYNAME)
-    sOthers = ThisDocument.CustomDocumentProperties("others")
+    sLogos = ActiveDocument.CustomDocumentProperties(PROPERTYNAME)
+    sOthers = ActiveDocument.CustomDocumentProperties("others")
     SwitchLogos "Bio"
     SwitchLogos "Fis"
     SwitchLogos "For"
@@ -164,11 +168,11 @@ Private Sub UserForm_Initialize()
     Dim i As Integer
     Dim j As Integer
     
-    BBCount = ThisDocument.AttachedTemplate.BuildingBlockEntries.Count
+    BBCount = ActiveDocument.AttachedTemplate.BuildingBlockEntries.Count
     Dim entries(1 To LOGOCOUNT, 1 To 2) As String
     For i = 1 To BBCount
-        entries(i, 2) = ThisDocument.AttachedTemplate.BuildingBlockEntries(i).Name
-        entries(i, 1) = ThisDocument.AttachedTemplate.BuildingBlockEntries(i).Description
+        entries(i, 2) = ActiveDocument.AttachedTemplate.BuildingBlockEntries(i).Name
+        entries(i, 1) = ActiveDocument.AttachedTemplate.BuildingBlockEntries(i).Description
     Next i
     'sort array
     Dim aTmp(1 To 1, 1 To 2) As String
