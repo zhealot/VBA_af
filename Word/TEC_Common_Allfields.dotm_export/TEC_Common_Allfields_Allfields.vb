@@ -1,13 +1,14 @@
 Attribute VB_Name = "Allfields"
-Public Const MAX_INI_WRITE_ATTEMPTS = 3
-Public Const FILE_VERSION = "4.1"
-Public Const LAST_UPDATED = "13/04/2016 3:30pm"
-Public Const LAST_AUTHOR = "Allfields"
+Const TEMPLATE_FOLDER = "\Templates"
+Public Const DEFAULT_FOLDER = "TAS Templates"
 Public strWorkgroupTemplatesPath As String
 Public strHelpPath As String
-Public Const InstructionFile = "instructions.dotx"
+Public Const InstructionFile = "Help Document.docx" '### instruction docu name
 Public TOOLKIT_LOADED As Boolean
-Public Const ext = "docx"
+Public Const ext = "dotx,pptx,potx,xltx"
+Public cTypes As New Collection
+Public sStr As Variant
+Public Const sDelimiter = ","
 Public Const imgEx = "jpg"
 Public strTemplatesPath As String
 Public imgPath As String
@@ -17,26 +18,23 @@ Public Sub setDefaultTab(control As IRibbonUI)
 End Sub
 
 Sub Autoexec()
-    Options.DefaultFilePath(wdPicturesPath) = "c:\users\tao"    '### default picture path
-    strWorkgroupTemplatesPath = "C:\Users\tao\Box Sync\1. Clients\TEC\TEC Templates provided"
-    imgPath = strWorkgroupTemplatesPath
-    Dim sPath As String
-    If Len(ThisDocument.Paragraphs(1).Range.Text) > 4 Then
-        If Right(Left(ThisDocument.Paragraphs(1).Range.Text, 3), 2) = ":\" Then
-            sPath = Trim(Application.CleanString(Replace(ThisDocument.Paragraphs(1).Range.Text, Chr(13), "")))
-            On Error Resume Next
-            Err.Clear
-            If Dir(sPath, vbDirectory) <> "" Then
-                If Err.Number = 0 Then
-                    strWorkgroupTemplatesPath = sPath
-                End If
-            End If
-        End If
+    On Error Resume Next
+    If TOOLKIT_LOADED = False Then
+        Dim spath As String
+        Dim i As Integer
+        Dim extA() As String
+        extA = Split(ext, sDelimiter)
+        On Error Resume Next
+        For i = LBound(extA) To UBound(extA)
+            cTypes.Add extA(i), extA(i)
+        Next
+        
+        strWorkgroupTemplatesPath = Application.Options.DefaultFilePath(wdWorkgroupTemplatesPath) & TEMPLATE_FOLDER
+        imgPath = Application.Options.DefaultFilePath(wdWorkgroupTemplatesPath) & "\Images"  '### picture folder location
+        strHelpPath = Application.Options.DefaultFilePath(wdWorkgroupTemplatesPath) & "\Help File"    'set Help document path
+        strTemplatesPath = strWorkgroupTemplatesPath & "\"
+        TOOLKIT_LOADED = True
     End If
-    strTemplatesPath = strWorkgroupTemplatesPath & "\"
-    'set Help document path
-    strHelpPath = strWorkgroupTemplatesPath
-    TOOLKIT_LOADED = True
 End Sub
 
 
@@ -46,19 +44,24 @@ Public Sub ShowTemplatesMenu(control As IRibbonControl)
     LaunchTemplatePicker
 End Sub
 
-
-Public Sub OpenHowToGuide(control As IRibbonControl)
-    If Not Dir(strHelpPath & "\" & InstructionFile) = "" Then
-        Documents.Add Template:=strHelpPath & "\" & InstructionFile
+Public Sub Images(control As IRibbonControl)
+    Allfields.Autoexec
+    If Not Dir(imgPath, vbDirectory) = "" Then
+        Shell "explorer.exe" & " " & imgPath, vbNormalFocus
     Else
-        MsgBox "Help file not found"
+        MsgBox "Image folder not found"
     End If
 End Sub
 
-Public Sub ShowVersionInformation(control As IRibbonControl)
-    Call MsgBox("Toolkit version " & FILE_VERSION & vbCr & vbCr _
-            & "Last updated " & LAST_UPDATED & vbCr _
-            & "by " & LAST_AUTHOR, vbInformation, "Template Toolkit Version Information")
+Public Sub OpenHowToGuide(control As IRibbonControl)
+    Allfields.Autoexec
+    If Not Dir(strHelpPath & "\" & InstructionFile) = "" Then
+        Dim doc As Word.Document
+        Set doc = Word.Documents.Add(Template:=strHelpPath & "\" & InstructionFile)
+        doc.Activate
+    Else
+        MsgBox "Help file not found"
+    End If
 End Sub
 
 ' Utility subs so we can launch the forms without the ribbon args
@@ -66,18 +69,6 @@ Public Sub LaunchTemplatePicker()
     Load frmTemplatePicker
     frmTemplatePicker.Show
 End Sub
-
-Public Sub PCCPowerpointTemplate(control As IRibbonControl)
-    LoadPPT "PCC Presentation Template.PPTM"
-End Sub
-
-Private Sub LoadPPT(strPPT As String)
-    Dim objPPT, objPresentation
-    Set objPPT = CreateObject("PowerPoint.Application")
-    objPPT.Visible = True
-    'Set objPresentation = objPPT.Presentations.Open("W:\!Common\Templates\Office_2010\Office_2010_Templates\PCC Presentation Template.PPTM")
-    'Set objPresentation = objPPT.Presentations.Open(strWorkgroupTemplatesPath & "\" & strPPT)
-    End Sub
 
 
 Function CheckRequirements(Optional RequireUserIni As Boolean = True) As Boolean
@@ -107,6 +98,42 @@ Sub ShowError(strError As String)
                 vbCritical + vbOKOnly
 End Sub
 
+
+Function ListSubFolders(fld As String) As Object
+'return 1 level subfolers in folder
+    Dim FileSystem As Object
+    Set FileSystem = CreateObject("Scripting.FileSystemObject")
+    Set ListSubFolders = FileSystem.GetFolder(fld)
+End Function
+
+Function HasFileType(fld As String, types As Collection) As Boolean
+'check if folder has file(s) of extension, include subfolers
+    HasFileType = False
+    'check folder root
+    If Not FolderExists(fld) Then Exit Function
+    Dim s As Variant
+    For Each s In types
+        If Dir(fld & "\*." & s) <> "" Then
+            HasFileType = True
+            Exit Function
+        End If
+    Next s
+    
+    'check subfolder
+    Dim f
+    Dim objFld As Object
+    Set objFld = ListSubFolders(fld)
+    If objFld Is Nothing Then Exit Function
+    For Each f In objFld.subfolders
+        For Each s In types
+            If Dir(fld & "\*." & s) <> "" Then
+                HasFileType = True
+                Exit Function
+            End If
+        Next s
+    Next f
+End Function
+
 Function GetFileList(FileSpec As String) As Variant
 '   Returns an array of filenames that match FileSpec
 '   If no matching files are found, it returns False
@@ -135,139 +162,4 @@ Function GetFileList(FileSpec As String) As Variant
 NoFilesFound:
     GetFileList = False
 End Function
-
-Public Sub QuickSort(vArray As Variant, inLow As Long, inHi As Long)
-
-  Dim pivot   As Variant
-  Dim tmpSwap As Variant
-  Dim tmpLow  As Long
-  Dim tmpHi   As Long
-
-  tmpLow = inLow
-  tmpHi = inHi
-
-  pivot = vArray((inLow + inHi) \ 2)
-
-  While (tmpLow <= tmpHi)
-
-     While (vArray(tmpLow) < pivot And tmpLow < inHi)
-        tmpLow = tmpLow + 1
-     Wend
-
-     While (pivot < vArray(tmpHi) And tmpHi > inLow)
-        tmpHi = tmpHi - 1
-     Wend
-
-     If (tmpLow <= tmpHi) Then
-        tmpSwap = vArray(tmpLow)
-        vArray(tmpLow) = vArray(tmpHi)
-        vArray(tmpHi) = tmpSwap
-        tmpLow = tmpLow + 1
-        tmpHi = tmpHi - 1
-     End If
-
-  Wend
-
-  If (inLow < tmpHi) Then QuickSort vArray, inLow, tmpHi
-  If (tmpLow < inHi) Then QuickSort vArray, tmpLow, inHi
-
-End Sub
-
-'Function to get filetitle from full path
-Public Function GetFileTitle(strFilename As String) As String
-    Dim dotPos As Integer
-    Dim slashPos As Integer
-    Dim slashLen As Integer
-    Dim dotLen As Integer
-    dotPos = -1
-    slashPos = 1
-    For i = Len(strFilename) To 2 Step -1
-      C = Mid(strFilename, i, 1)
-      If -1 = dotPos And C = "." Then
-        dotPos = i + 1
-      ElseIf C = "\" Then
-        slashPos = i + 1
-        Exit For
-      End If
-    Next
-    
-    slashLen = Len(strFilename) + 1 - slashPos
-    dotLen = Len(strFilename) + 2 - dotPos
-    
-    GetFileTitle = Mid(strFilename, slashPos, slashLen - dotLen)
-End Function
-
-Public Function GetFileExtension(strFilename As String) As String
-    pos = 1
-    For i = Len(strFilename) To 2 Step -1
-      C = Mid(strFilename, i, 1)
-      If C = "." Then
-        pos = i + 1
-        Exit For
-      End If
-    Next
-    
-    GetFileExtension = Mid(strFilename, pos, (Len(strFilename) + 1 - pos))
-End Function
-
-Function ListSubFolders(fld As String) As Object
-'return 1 level subfolers in folder
-    Dim FileSystem As Object
-    Set FileSystem = CreateObject("Scripting.FileSystemObject")
-    Set ListSubFolders = FileSystem.GetFolder(fld)
-End Function
-
-Function HasFileType(fld As String, ext As String) As Boolean
-'check if folder has file(s) of extension, include subfolers
-    HasFileType = False
-    If Not FolderExists(fld) Then Exit Function
-    If Dir(fld & "\*." & ext) <> "" Then
-        HasFileType = True
-        Exit Function
-    End If
-    Dim f
-    Dim objFld As Object
-    Set objFld = ListSubFolders(fld)
-    If objFld Is Nothing Then Exit Function
-    For Each f In objFld.SubFolders
-        If HasFileType(f.Path, ext) Then
-            HasFileType = True
-            Exit Function
-        End If
-    Next f
-End Function
-
-Function ColourValue(cl As String) As Long
-    Select Case LCase(Trim(cl))
-        Case "exaqua"
-            ColourValue = 10333797
-        Case "exblue"
-            ColourValue = 12953687
-        Case "exgreen"
-            ColourValue = 3915194
-        Case "exred"
-            ColourValue = 2382313
-        Case "exrose"
-            ColourValue = 7759822
-        Case "inblue"
-            ColourValue = 14458112
-        Case "ingreen"
-            ColourValue = 3850658
-        Case "inpink"
-            ColourValue = 7422434
-        Case "inyellow"
-            ColourValue = 39423
-        Case Else
-            ColourValue = 0
-        End Select
-End Function
-
-Sub InsertPicture3()
-    Debug.Print "insert pic"
-End Sub
-
-Sub sdf()
-    Debug.Print HasFileType("C:\Users\tao\Box Sync\1. Clients\TEC\TEC Templates provided\External Templates\Simple Template - Masthead - No Cover", "doc")
-End Sub
-
 

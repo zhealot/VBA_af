@@ -107,8 +107,8 @@ Private Sub cbtOK_Click()
                 Select Case sBackground
                 Case "FullCover"
                     rg.Font.ColorIndex = wdWhite
-                Case Else
-                    rg.Font.ColorIndex = wdBlack
+'                Case Else
+'                    rg.Font.ColorIndex = wdBlack
                 End Select
             End If  'if sCover = LETTERHEADER
             Exit For

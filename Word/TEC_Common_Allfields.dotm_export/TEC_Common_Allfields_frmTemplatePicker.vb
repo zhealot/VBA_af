@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmTemplatePicker 
-   Caption         =   "TEC Templates"
-   ClientHeight    =   7710
+   Caption         =   "TAS Template Picker"
+   ClientHeight    =   10500
    ClientLeft      =   45
    ClientTop       =   330
-   ClientWidth     =   9465
+   ClientWidth     =   12345
    OleObjectBlob   =   "TEC_Common_Allfields_frmTemplatePicker.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -14,202 +14,200 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 '-----------------------------------------------------------------------------
-' These templates have been prepared and developed for the TED
+' These templates have been prepared and developed for the TAS
 ' Created by:       Allfields Customised Solutions Limited
 ' Contact Info:     info@allfields.co.nz, 04 978 7101
-' Date:             March 2011
+' Date:             February 2018
 ' Description:      Form used for picking template to load. Scans the
-'                   Workgroup Templates folder for templates with a .dotm
-'                   extension, groups them by the text before the dash, and
-'                   named by the text after the dash, less the extension
+'                   Workgroup Templates folder for templates
 '-----------------------------------------------------------------------------
 Option Explicit
 
-'Double-clicking the top listbox is same as OK button
-Private Sub lstStandard_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-    Call cmbOK_Click
+
+
+Private Sub lbGroup_Click()
+    Dim fld As String
+    fld = strWorkgroupTemplatesPath & "\" & lbGroup.Text
+    'always show root folder content for "TAS"
+    If lbGroup.Text = "TAS" Then
+        fld = strWorkgroupTemplatesPath
+    End If
+    If Dir(fld, vbDirectory) = "" Then
+       ThrowFatalError "This doesn't seem to be a template folder" & vbCr & vbCr & "Looking in " & """" & fld & """"
+    Else
+        'lbGroupName.Caption = "Business Group: " & lbGroup.Text
+        Dim afn As Variant
+        afn = GetFileList(fld & "\*." & ext)
+        lbxWord.Clear
+        lbxPPT.Clear
+        lbxExcel.Clear
+        If HasFileType(fld, cTypes) Then
+            Dim sFile As String
+            For Each sStr In cTypes
+                sFile = Dir(fld & "\*." & sStr)
+                Do While sFile <> ""
+                    If Right(sFile, Len(sStr)) = sStr Then
+                        If LCase(Left(sStr, 1)) = "d" Then
+                            lbxWord.AddItem sFile
+                        ElseIf LCase(Left(sStr, 1)) = "p" Then
+                            lbxPPT.AddItem sFile
+                        ElseIf LCase(Left(sStr, 1)) = "x" Then
+                            lbxExcel.AddItem sFile
+                        End If
+                    End If
+                    sFile = Dir() 'next file
+                Loop
+            Next sStr
+        End If
+    End If
 End Sub
 
 Private Sub UserForm_Initialize()
     Dim iCounter As Integer
-    '###test purpose
-    'strWorkgroupTemplatesPath = "C:\Users\tao\Box Sync\1. Clients\TEC\TEC Templates provided"
-    'initialize controls
     Call ClearControls
-    Me.lb1st.Caption = ""
-    Me.lb2nd.Caption = ""
-    Me.lb3rd.Caption = ""
     If Dir(strWorkgroupTemplatesPath, vbDirectory) = "" Then
         ThrowFatalError "There doesnt seem to be any templates in the Workgroup Templates folder" _
         & vbCr & vbCr & "Looking in " & """" & strWorkgroupTemplatesPath & """"
     Else
         Dim objFld As Object
         Set objFld = ListSubFolders(strWorkgroupTemplatesPath)
-        If objFld.SubFolders.Count > 0 Then
-            lbx1st.Clear
+        lbGroup.Clear
+        If objFld.subfolders.Count > 0 Then
             Dim f
-            For Each f In objFld.SubFolders
-                If HasFileType(f.Path, ext) Then
-                    lbx1st.AddItem f.Name
-                End If
+            For Each f In objFld.subfolders
+                lbGroup.AddItem f.Name
             Next f
-        Else
-            ThrowFatalError "There doesnt seem to be any templates in the Workgroup Templates folder" _
-                & vbCr & vbCr & "Looking in " & """" & strWorkgroupTemplatesPath & """"
         End If
-        lb1st.Caption = Right(strWorkgroupTemplatesPath, Len(strWorkgroupTemplatesPath) - InStrRev(strWorkgroupTemplatesPath, "\"))
-    End If
-    'Me.Show
-End Sub
-
-Private Sub lbx1st_Click()
-    Dim fld As String
-    fld = strWorkgroupTemplatesPath & "\" & lbx1st.Text
-    If Dir(fld, vbDirectory) = "" Then
-        ThrowFatalError "There doesnt seem to be any templates in the Workgroup Templates folder" _
-        & vbCr & vbCr & "Looking in " & """" & fld & """"
-    Else
-        Call ClearControls
-        Dim objFld As Object
-        Set objFld = ListSubFolders(fld)
-        If objFld.SubFolders.Count > 0 Or HasFileType(fld, ext) Then
-            lbx2nd.Clear
-            If objFld.SubFolders.Count > 0 Then
-                Dim f
-                For Each f In objFld.SubFolders
-                    If HasFileType(f.Path, ext) Then
-                        lbx2nd.AddItem f.Name
-                    End If
-                Next f
+            Dim i As Integer
+        For i = 0 To lbGroup.ListCount - 1
+            If lbGroup.List(i) = DEFAULT_FOLDER Then
+                lbGroup.ListIndex = i
+                Exit For
             End If
-            If HasFileType(fld, ext) Then
-                Dim sFile As String
-                sFile = Dir(fld & "\*." & ext)
+        Next i
+        'list files in folder root
+        lbxWord.Clear
+        lbxPPT.Clear
+        lbxExcel.Clear
+        If HasFileType(strWorkgroupTemplatesPath & "\" & DEFAULT_FOLDER, cTypes) Then
+            Dim sFile As String
+            For Each sStr In cTypes
+                sFile = Dir(strWorkgroupTemplatesPath & "\" & DEFAULT_FOLDER & "\*." & sStr)
                 Do While sFile <> ""
-                    lbx3rd.AddItem sFile
+
+                    If Right(sFile, Len(sStr)) = sStr Then
+                        Select Case LCase(Left(sStr, 1))
+                        Case "d"    'Word
+                            lbxWord.AddItem sFile
+                        Case "p"    'PowerPoint
+                            lbxPPT.AddItem sFile
+                        Case "x"    'Excel
+                            lbxExcel.AddItem sFile
+                        End Select
+                    End If
                     sFile = Dir() 'next file
                 Loop
-            End If
-        Else
-            ThrowFatalError "There doesnt seem to be any templates in the Workgroup Templates folder" _
-                & vbCr & vbCr & "Looking in " & """" & strWorkgroupTemplatesPath & """"
+            Next sStr
         End If
-        lb2nd.Caption = Right(fld, Len(fld) - InStrRev(fld, "\"))
     End If
+
+
+        
+    'Me.Show
 End Sub
-
-Private Sub lbx2nd_Click()
-    Dim fld As String
-    fld = strWorkgroupTemplatesPath & "\" & lbx1st.Text & "\" & lbx2nd.Text
-    If Dir(fld, vbDirectory) = "" Then
-        ThrowFatalError "There doesnt seem to be any templates in the Workgroup Templates folder" _
-        & vbCr & vbCr & "Looking in " & """" & fld & """"
-    Else
-        Call ClearControls
-        Dim aFN As Variant
-        aFN = GetFileList(fld & "\*." & ext)
-        lb3rd.Caption = Right(fld, Len(fld) - InStrRev(fld, "\"))
-        Dim fl
-        Dim iBtn As Integer
-        iBtn = 1
-        For Each fl In aFN
-            Dim str As String
-            str = Left(lbx1st, 2)
-            str = str + IIf(InStr(fl, " ") > 0, Left(fl, InStr(fl, " ")), Left(fl, InStr(fl, ".") - 1))
-            If ColourValue(str) = 0 Then
-                lbx3rd.AddItem fl
-            Else
-                Dim ob As OptionButton
-                Set ob = Me.Controls("ob" & iBtn)
-                ob.BackColor = ColourValue(str)
-                ob.Caption = fl
-                ob.Enabled = True
-                iBtn = iBtn + 1
-            End If
-        Next fl
-    End If
-End Sub
-
-
-Private Sub lbx3rd_Click()
+Private Sub lbxWord_Click()
     Dim i As Integer
-    Dim ob As OptionButton
-    If lbx3rd.ListIndex >= 0 Then
-        For i = 1 To 5 Step 1
-            Set ob = Me.Controls("ob" & i)
-            ob.Value = False
-        Next i
-    End If
+    lbxPPT.ListIndex = -1
+    lbxExcel.ListIndex = -1
+    
     imgPreview.Picture = LoadPicture
-    Dim sPath As String
-    sPath = imgPath & "\" & lbx1st.Text & "\" & lbx2nd.Text & "\" & lbx3rd.Text
-    sPath = Left(sPath, InStrRev(sPath, ".")) & imgEx
-    If Not Dir(sPath) = "" Then
-        imgPreview.Picture = LoadPicture(sPath, imgPreview.Width, imgPreview.Height)
+    Dim spath As String
+    spath = strWorkgroupTemplatesPath & "\" & frmTemplatePicker.lbGroup.List(lbGroup.ListIndex) & "\" & lbxWord.Text
+    spath = Left(spath, InStrRev(spath, ".")) & imgEx
+    If Not Dir(spath) = "" Then
+        imgPreview.Picture = LoadPicture(spath, imgPreview.Width, imgPreview.Height)
         imgPreview.PictureSizeMode = fmPictureSizeModeZoom
     End If
 End Sub
 
-Private Sub ob1_Click()
-    ClearLv3 ob1.Caption
+Private Sub lbxPPT_Click()
+    Dim i As Integer
+    lbxWord.ListIndex = -1
+    lbxExcel.ListIndex = -1
+    
+    imgPreview.Picture = LoadPicture
+    Dim spath As String
+    spath = strWorkgroupTemplatesPath & "\" & frmTemplatePicker.lbGroup.List(lbGroup.ListIndex) & "\" & lbxPPT.Text
+    spath = Left(spath, InStrRev(spath, ".")) & imgEx
+    If Not Dir(spath) = "" Then
+        imgPreview.Picture = LoadPicture(spath, imgPreview.Width, imgPreview.Height)
+        imgPreview.PictureSizeMode = fmPictureSizeModeZoom
+    End If
 End Sub
 
-Private Sub ob2_Click()
-    ClearLv3 ob2.Caption
-End Sub
-
-Private Sub ob3_Click()
-    ClearLv3 ob3.Caption
-End Sub
-
-Private Sub ob4_Click()
-    ClearLv3 ob4.Caption
-End Sub
-
-Private Sub ob5_Click()
-    ClearLv3 ob5.Caption
-End Sub
-
-'------------------------------------------------------------
-'When the "Open Existing Document" is clicked, Word's Open
-'dialog box is displayed. If it is OK'ed, the Menu is unloaded
-'------------------------------------------------------------
-Private Sub cmbOpen_Click()
-    If Dialogs(wdDialogFileOpen).Show = -1 Then
-        Unload frmTemplatePicker
+Private Sub lbxExcel_Click()
+    Dim i As Interior
+    lbxWord.ListIndex = -1
+    lbxPPT.ListIndex = -1
+    
+    imgPreview.Picture = LoadPicture
+    Dim spath As String
+    spath = strWorkgroupTemplatesPath & "\" & frmTemplatePicker.lbGroup.List(lbGroup.ListIndex) & "\" & lbxExcel.Text
+    spath = Left(spath, InStrRev(spath, ".")) & imgEx
+    If Not Dir(spath) = "" Then
+        imgPreview.Picture = LoadPicture(spath, imgPreview.Width, imgPreview.Height)
+        imgPreview.PictureSizeMode = fmPictureSizeModeZoom
     End If
 End Sub
 
 Sub cmbCancel_Click()
-    Unload Me
-    End
+    Me.Hide
 End Sub
 
 Sub cmbOK_Click()
     Dim i As Integer
-    Dim sPath As String
-    Dim ob As OptionButton
+    Dim spath As String
+'    Dim ob As OptionButton
     Dim found As Boolean
     found = False
     
-    If lbx3rd.ListIndex >= 0 Then
-        sPath = strWorkgroupTemplatesPath & "\" & lbx1st.Text & "\" & lbx2nd.Text & "\" & lbx3rd.Value
+    If lbxWord.ListIndex >= 0 Or lbxPPT.ListIndex >= 0 Or lbxExcel.ListIndex >= 0 Then
+        spath = strWorkgroupTemplatesPath & "\" & lbGroup.List(lbGroup.ListIndex) & "\" & IIf(lbxWord.ListIndex > -1, lbxWord.Value, IIf(lbxPPT.ListIndex > -1, lbxPPT.Value, lbxExcel.Value))
         found = True
     Else
-        For i = 1 To 5 Step 1
-            Set ob = Controls("ob" & i)
-            If ob.Value Then
-                sPath = strWorkgroupTemplatesPath & "\" & lbx1st.Text & "\" & lbx2nd.Text & "\" & ob.Caption
-                found = True
-                Exit For
-            End If
-        Next i
+        found = False
     End If
     If found Then
         '###Unload Me
         Me.Hide
         'Create new document
-        Documents.Add Template:=sPath
+        '###TODO, ability to launch PowerPoint or Excel app and add new file/presentation
+        Dim sFileType As String
+        sFileType = Trim(LCase(Right(spath, Len(spath) - InStrRev(spath, "."))))
+        Select Case Left(sFileType, 2)
+            Case "do"
+                Dim newDoc As Document
+                Set newDoc = Documents.Add(Template:=spath)
+                Application.Visible = True
+                newDoc.Activate
+                newDoc.Windows(1).Activate
+            Case "xl"
+                Dim xApp As Excel.Application
+                Dim xWb As Excel.Workbook
+                Set xApp = New Excel.Application
+                xApp.Visible = True
+                Set xWb = xApp.Workbooks.Add(spath)
+                xWb.Windows.Item(1).WindowState = xlMaximized
+                xWb.Windows.Item(1).Activate
+            Case "pp", "po"
+                Dim pApp As PowerPoint.Application
+                Set pApp = New PowerPoint.Application
+                pApp.Presentations.Open spath, , msoCTrue
+                pApp.Visible = msoTrue
+                pApp.Presentations(1).Windows(1).Activate
+                pApp.Activate
+            Case Else
+            End Select
     Else
         MsgBox "Please select a template from the list", vbOKOnly + vbCritical, "No template selected"
     End If
@@ -225,33 +223,15 @@ End Function
 
 
 Sub ClearControls()
-    Dim ob As OptionButton
-    Dim i As Integer
-    For i = 1 To 5 Step 1
-        Set ob = Me.Controls("ob" & i)
-        ob.BackColor = 15790320
-        ob.Caption = ""
-        ob.Enabled = False
-        ob.Value = False
-    Next i
-    Me.lbx3rd.Clear
+    Me.lbxWord.Clear
+    Me.lbxPPT.Clear
+    Me.lbxExcel.Clear
 End Sub
 
-Function ClearLv3(cpt As String)
-    Me.lbx3rd.ListIndex = -1
-    imgPreview.Picture = LoadPicture
-    Dim sPath As String
-    sPath = imgPath & "\" & lbx1st.Text & "\" & lbx2nd.Text & "\" & cpt
-    sPath = Left(sPath, InStrRev(sPath, ".")) & imgEx
-    If Not Dir(sPath) = "" Then
-        imgPreview.Picture = LoadPicture(sPath, imgPreview.Width, imgPreview.Height)
-        imgPreview.PictureSizeMode = fmPictureSizeModeZoom
-    End If
+Function ListSubFolders(fld As String) As Object
+'return 1 level subfolers in folder
+    Dim FileSystem As Object
+    Set FileSystem = CreateObject("Scripting.FileSystemObject")
+    Set ListSubFolders = FileSystem.GetFolder(fld)
 End Function
 
-Sub test()
-    Dim cc As ContentControl
-    Dim iPD As IPictureDisp
-    cc.Range.ShapeRange.Item (1)
-    
-End Sub
