@@ -6,8 +6,8 @@ Const Style1 = "Instructional Text"
 Const Style2 = "Instructional Text Bullets"
 Const SERVERPROPERTY = "MPIPortfolio"  'property to read from server
 Const HEADER_TOP_TO_PAGE = 1.2
-Const HEADER_RIGHT_TO_PAGE = 1.1  'distance of header logo right side  to page right side, in centimeter
-Const FOOTER_BOTTOM_TO_PAGE = 1.13  'distance of footer logo bottom side to page bottom side, in centimeter
+Const HEADER_RIGHT_TO_PAGE = 1.1  'distance of header logo right edge to page right edge, in centimeter
+Const FOOTER_BOTTOM_TO_PAGE = 1.13  'distance of footer logo bottom edge to page bottom edge, in centimeter
 Const FOOTER_LEFT_TO_PAGE = 1.2
 Const HEADER_LOGO_WIDTH = 8.6
 Const FOOTER_LOGO_WIDTH = 6.2
@@ -15,9 +15,9 @@ Public Const DOCUMENTPROPERTY = "Category" 'document property name to hold busin
 Public sBG As String 'short business group name
 Public docA As Document
 
-Public Sub AutoExec()
-    Set oWithEvent.oWdApp = Word.Application
-End Sub
+'Public Sub AutoExec()
+'    Set oWithEvent.oWdApp = Word.Application
+'End Sub
 
 Public Function SetLogo(docA As Document, Optional sPty As String = "")
 'sPty is used for bath convert document based on document server property
@@ -37,8 +37,9 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
     If sPty <> "" Then
         sBG = ReadServerProperty(docA, SERVERPROPERTY)
     End If
+    'use MPI logo by default
     If sBG = "" Then
-        Exit Function
+        sBG = "MPI"
     End If
     'set range to whole current page
     Set rg = docA.Content
@@ -59,13 +60,20 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
                 rg.ShapeRange(1).Delete
             End If
             rg.Collapse wdCollapseEnd
-            Set rgTmp = docTmp.BuildingBlockEntries(sBG).Insert(rg)
+            'use BBName to translate logo name to building block name
+            Set rgTmp = docTmp.BuildingBlockEntries(BBName(sBG)).Insert(rg)
             Set spNew = rgTmp.ShapeRange(1)
             spNew.LockAspectRatio = msoTrue
             spNew.Width = CentimetersToPoints(HEADER_LOGO_WIDTH)
             spNew.WrapFormat.Type = wdWrapSquare
             spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
             spNew.Left = docA.Sections(1).PageSetup.PageWidth - spNew.Width - CentimetersToPoints(HEADER_RIGHT_TO_PAGE)
+            'for letterhead templete, put Fishery and Forestry logo at top left
+            If InStr(LCase(docA.BuiltInDocumentProperties("Keywords")), LCase("Letterhead Template with Logo")) > 0 Then
+                If LCase(sBG) = "fis" Or LCase(sBG) = "for" Then
+                    spNew.Left = CentimetersToPoints(HEADER_RIGHT_TO_PAGE)
+                End If
+            End If
             spNew.RelativeVerticalPosition = wdRelativeVerticalPositionPage
             spNew.Top = CentimetersToPoints(HEADER_TOP_TO_PAGE)
             
@@ -88,37 +96,39 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
                     End If
                 Next iFt
             Next sec
-            'set range
-            If docA.Sections(1).Footers(wdHeaderFooterFirstPage).Exists Then
-                Set rg = docA.Sections(1).Footers(wdHeaderFooterFirstPage).Range
-            Else
-                Set rg = docA.Sections(1).Footers(wdHeaderFooterPrimary).Range
-            End If
-            'insert footer logo is necessary
-            Select Case sBG
-            Case "Bio", "Fis", "NZF"    'for those groups, insert MPI logo
-                rg.Collapse wdCollapseStart
-                Set rgTmp = docTmp.BuildingBlockEntries("mpi").Insert(rg)
-                If rgTmp.ShapeRange.Count > 0 Then
-                    Set spNew = rgTmp.ShapeRange(1)
-                    spNew.LockAspectRatio = msoCTrue
-                    spNew.Width = CentimetersToPoints(FOOTER_LOGO_WIDTH)
-                    spNew.WrapFormat.Type = wdWrapSquare
-                    spNew.WrapFormat.AllowOverlap = False
-                    spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
-                    spNew.Left = CentimetersToPoints(FOOTER_LEFT_TO_PAGE)
-                    spNew.RelativeVerticalPosition = wdRelativeVerticalPositionPage
-                    spNew.Top = docA.Sections(1).PageSetup.PageHeight - spNew.Height - CentimetersToPoints(FOOTER_BOTTOM_TO_PAGE)
+            'for letterhead template
+            If InStr(LCase(ActiveDocument.BuiltInDocumentProperties("Keywords")), LCase("Letterhead Template with Logo")) > 0 Then
+                'set range
+                If docA.Sections(1).Footers(wdHeaderFooterFirstPage).Exists Then
+                    Set rg = docA.Sections(1).Footers(wdHeaderFooterFirstPage).Range
+                Else
+                    Set rg = docA.Sections(1).Footers(wdHeaderFooterPrimary).Range
                 End If
-            Case "For", "MPI"           'for those groups, delete MPI logo
-                If rg.ShapeRange.Count > 0 Then
-                    Set spNew = rg.ShapeRange(1)
-                    If spNew.Title = "MPI" Then
-                        spNew.Delete
+                'insert footer logo is necessary
+                Select Case sBG
+                Case "Bio", "NZF"    'for those groups, insert MPI logo
+                    rg.Collapse wdCollapseStart
+                    Set rgTmp = docTmp.BuildingBlockEntries("mpi").Insert(rg)
+                    If rgTmp.ShapeRange.Count > 0 Then
+                        Set spNew = rgTmp.ShapeRange(1)
+                        spNew.LockAspectRatio = msoCTrue
+                        spNew.Width = CentimetersToPoints(FOOTER_LOGO_WIDTH)
+                        spNew.WrapFormat.Type = wdWrapSquare
+                        spNew.WrapFormat.AllowOverlap = False
+                        spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
+                        spNew.Left = CentimetersToPoints(FOOTER_LEFT_TO_PAGE)
+                        spNew.RelativeVerticalPosition = wdRelativeVerticalPositionPage
+                        spNew.Top = docA.Sections(1).PageSetup.PageHeight - spNew.Height - CentimetersToPoints(FOOTER_BOTTOM_TO_PAGE)
                     End If
-                End If
-            Case Else
-            End Select
+                Case Else 'for those groups, delete MPI logo
+                    If rg.ShapeRange.Count > 0 Then
+                        Set spNew = rg.ShapeRange(1)
+                        If spNew.Title = "MPI" Then
+                            spNew.Delete
+                        End If
+                    End If
+                End Select
+            End If
         End If
     Next docTmp
     'for non-bath convert call, write back to normal.dotm
@@ -131,7 +141,19 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
             End If
         Next docTmp
     End If
+    'write up the 'Category' property to indicate its logo has been set
+    docA.BuiltInDocumentProperties(DOCUMENTPROPERTY) = sBG
     oApp.ScreenUpdating = True
+End Function
+
+'parse building block name for letterhead template
+Public Function BBName(s As String) As String
+    BBName = s
+    If InStr(LCase(ActiveDocument.BuiltInDocumentProperties("Keywords")), LCase("Letterhead Template with Logo")) > 0 Then
+        If LCase(s) = "bio" Or LCase(s) = "nzf" Then
+            BBName = s & "_ori" 'use original logo (no mpi part) for bio and NZF
+        End If
+    End If
 End Function
 
 Public Sub ShowDIP(control As IRibbonControl)
@@ -226,7 +248,7 @@ Public Function OBClick(ob As control)
     sBG = ""
     Dim ctl As control
     For Each ctl In fmLogo.frmImage.Controls
-        If Right(ctl.Name, Len(ctl.Name) - 3) = Right(ob.Name, Len(ob.Name) - 2) Then
+        If Right(ctl.Name, Len(ctl.Name) - 3) = Right(ob.Name, Len(ob.Name) - 2) & IIf(docA.BuiltInDocumentProperties("Keywords") = "Letterhead Template with Logo" And (Right(ob.Name, Len(ob.Name) - 2) = "Bio" Or Right(ob.Name, Len(ob.Name) - 2) = "NZF"), "_ori", "") Then
             sBG = Right(ob.Name, Len(ob.Name) - 2)
             ctl.Visible = True
         Else

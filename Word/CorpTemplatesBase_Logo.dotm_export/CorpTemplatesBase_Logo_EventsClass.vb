@@ -7,10 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-Public WithEvents oWdApp As Word.Application
-Attribute oWdApp.VB_VarHelpID = -1
-
-Private Sub oWdApp_DocumentOpen(ByVal doc As Document)
-'    MsgBox "opeeeeen"
-    Call SetLogo(doc)
-End Sub
+'Public WithEvents oWdApp As Word.Application
+'
+'Private Sub oWdApp_DocumentOpen(ByVal doc As Document)
+''    MsgBox "opeeeeen"
+'    Call SetLogo(doc)
+'End Sub

@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fmLogo 
    Caption         =   "Logo Selection"
-   ClientHeight    =   5170
+   ClientHeight    =   5175
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   9870
@@ -57,6 +57,7 @@ Private Sub obNZF_Click()
 End Sub
 
 Private Sub UserForm_Initialize()
+    Set docA = ActiveDocument
     For Each ctrl In fmLogo.frmImage.Controls
         ctrl.Visible = False
     Next ctrl
