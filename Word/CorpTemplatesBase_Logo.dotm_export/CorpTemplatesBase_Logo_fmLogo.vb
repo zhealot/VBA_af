@@ -73,4 +73,6 @@ Private Sub UserForm_Initialize()
             ob.Value = False
         End If
     Next
+    'set Forestry Maori name
+    'obFor.Caption = "Te Uru R" & Chr(227) & "kau"
 End Sub
