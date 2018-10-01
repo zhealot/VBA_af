@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} UserForm1 
-   Caption         =   "Offer Letter"
-   ClientHeight    =   11355
+   Caption         =   "OAG Offer of Employment Template"
+   ClientHeight    =   12225
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   7005
+   ClientWidth     =   6930
    OleObjectBlob   =   "OAG_Offer of employment_UserForm1.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -29,6 +29,8 @@ Sub FixPermanent()
     tbBusinessUnit.Text = "Audit New Zealand"
     cbCredit.Enabled = Not rbFixed.Value
     cbSecurity.Enabled = Not rbFixed.Value
+    cbDriver.Enabled = Not rbFixed.Value
+    cbPro.Enabled = Not rbFixed.Value
     Label12.Enabled = rbFixed.Value
     cbNolate.Enabled = Not rbFixed.Value
     Label12.Enabled = rbFixed.Value
@@ -199,8 +201,9 @@ Private Sub cbOK_Click()
     SetBM "bmPosition2", tbPosition.Text
     SetBM "bmBusinessUnit", tbBusinessUnit.Text
     SetBM "bmBusinessUnit2", tbBusinessUnit.Text
+    SetBM "bmBusinessUnit3", tbBusinessUnit.Text
     SetBM "bmLocation", tbLocation.Text
-    SetBM "bmRemuneration", Replace(tbRemuneration.Text, "$", "")
+    SetBM "bmRemuneration", Format(Replace(tbRemuneration.Text, "$", ""), "Currency")
     SetBM "bmOfferCloseDate", Format(tbOfferCloseDate, "Long Date")
     
     'Fixed term /Permanent offer
@@ -209,16 +212,18 @@ Private Sub cbOK_Click()
         SetBM "bmSalaryReview", ""
         HideBM "bmProMem", True
         HideBM "bmDriver", True
+        HideBM "bmProMem", True
         HideBM "bmTOIL", False
         HideBM "bmCredit", True
         SetBM "bmFixedTerm", "fixed term "
         SetBM "bmPeriodOfEmployment", "The period of fixed term employment commences on " & Format(tbCommenceDate.Text, "Long Date") & " and concludes on " & Format(tbConcludeDate.Text, "Long Date") & "."
         HideBM "bmReason", False
     Else
-        SetBM "bmStartDate", "Start Date"
+        SetBM "bmStartDate", "Start date"
         SetBM "bmSalaryReview", "Your salary will be reviewed annually. Currently this occurs in July."
         HideBM "bmProMem", False
         HideBM "bmDriver", False
+        HideBM "bmProMem", False
         HideBM "bmTOIL", True
         HideBM "bmCredit", False
         If cbNolate.Value Then
@@ -242,6 +247,15 @@ Private Sub cbOK_Click()
             iDays = 5
         Else
             sWeekDays = IIf(cbMon.Value, ", Monday", "") & IIf(cbTue.Value, ", Tuesday", "") & IIf(cbWed.Value, ", Wednesday", "") & IIf(cbThu.Value, ", Thursday", "") & IIf(cbFri.Value, ", Friday", "") & "."
+            If InStrRev(sWeekDays, ",") > 1 Then
+            'for moren than 1 day, put 'and' before last day
+                Dim sL As String
+                Dim sR As String
+                sL = Left(sWeekDays, InStrRev(sWeekDays, ",") - 1)
+                sR = Right(sWeekDays, Len(sWeekDays) - InStrRev(sWeekDays, ",") + 1)
+                sR = Replace(sR, ",", " and")
+                sWeekDays = sL & sR
+            End If
             If cbMon.Value Then
                 iDays = iDays + 1
             End If
@@ -298,6 +312,9 @@ Private Sub cbOK_Click()
             SetBM "bmCreditHistory3", ""
             HideBM "bmCreditClause", True
         End If
+        'driver license
+        HideBM "bmDriver", Not cbDriver.Value
+        HideBM "bmProMem", Not cbPro.Value
         'security
         If cbSecurity.Value Then
             HideBM "bmSecurityYes", False
