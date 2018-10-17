@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fmLogo 
    Caption         =   "Logo Selection"
-   ClientHeight    =   5175
-   ClientLeft      =   120
-   ClientTop       =   465
-   ClientWidth     =   9870
+   ClientHeight    =   6465
+   ClientLeft      =   150
+   ClientTop       =   585
+   ClientWidth     =   12330
    OleObjectBlob   =   "CorpTemplatesBase_Logo_fmLogo.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -70,6 +70,7 @@ Private Sub UserForm_Initialize()
             ob.Value = True
             Exit For
         Else
+            On Error Resume Next
             ob.Value = False
         End If
     Next

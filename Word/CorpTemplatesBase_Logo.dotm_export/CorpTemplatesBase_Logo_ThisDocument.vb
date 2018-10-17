@@ -20,17 +20,17 @@ Private Sub CommandButton1_Click()
     Call FixLogos(sPath)
 End Sub
 
-'Private Sub Document_Open()
-'    On Error Resume Next
-'    Application.DisplayDocumentInformationPanel = True
-'    'exception for certain document
-'    If InStr(LCase(ActiveDocument.BuiltInDocumentProperties("Keywords")), LCase("Letterhead Template for Printed Letterhead")) > 0 Then
-'        Exit Sub
-'    End If
-'    'skip if opening an existing document that logo has been set before
-'    If ActiveDocument.BuiltInDocumentProperties(DOCUMENTPROPERTY) <> "" Then
-'        Exit Sub
-'    End If
-'    Call SetLogo(ActiveDocument)
-'End Sub
-'
+Private Sub Document_Open()
+    On Error Resume Next
+    Application.DisplayDocumentInformationPanel = True
+    'exception for certain document
+    If InStr(LCase(ActiveDocument.BuiltInDocumentProperties("Keywords")), LCase("Letterhead Template for Printed Letterhead")) > 0 Then
+        Exit Sub
+    End If
+    'skip if opening an existing document that logo has been set before
+    If ActiveDocument.BuiltInDocumentProperties(DOCUMENTPROPERTY) <> "" Then
+        Exit Sub
+    End If
+    Call SetLogo(ActiveDocument)
+End Sub
+

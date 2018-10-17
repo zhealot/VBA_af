@@ -5,12 +5,12 @@ Dim oWithEvent As New EventsClass
 Const Style1 = "Instructional Text"
 Const Style2 = "Instructional Text Bullets"
 Const SERVERPROPERTY = "MPIPortfolio"  'property to read from server
-Const HEADER_TOP_TO_PAGE = 1.2
-Const HEADER_RIGHT_TO_PAGE = 1.1  'distance of header logo right edge to page right edge, in centimeter
-Const FOOTER_BOTTOM_TO_PAGE = 1.13  'distance of footer logo bottom edge to page bottom edge, in centimeter
-Const FOOTER_LEFT_TO_PAGE = 1.2
-Const HEADER_LOGO_WIDTH = 8.6
-Const FOOTER_LOGO_WIDTH = 6.2
+Const HEADER_TOP_TO_PAGE = 1
+Const HEADER_RIGHT_TO_PAGE = 2  'distance of header logo right edge to page right edge, in centimeter
+Const FOOTER_BOTTOM_TO_PAGE = 1  'distance of footer logo bottom edge to page bottom edge, in centimeter
+Const FOOTER_LEFT_TO_PAGE = 2
+Const HEADER_LOGO_WIDTH = 8
+Const FOOTER_LOGO_WIDTH = 6
 Public Const DOCUMENTPROPERTY = "Category" 'document property name to hold business group
 Public sBG As String 'short business group name
 Public docA As Document
@@ -47,6 +47,8 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
     Dim SeekView As Long
     Dim docTmp As Template
     Dim spNew As Shape  'new shape
+    Dim pr As Paragraph
+    Dim cc As ContentControl
     For Each docTmp In oApp.Templates
         If docTmp.Name = ThisDocument.Name Then
             'set first page header if any, otherwise set section 1 primary header
@@ -59,23 +61,39 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
             If rg.ShapeRange.Count > 0 Then
                 rg.ShapeRange(1).Delete
             End If
-            rg.Collapse wdCollapseEnd
-            'use BBName to translate logo name to building block name
-            Set rgTmp = docTmp.BuildingBlockEntries(BBName(sBG)).Insert(rg)
-            Set spNew = rgTmp.ShapeRange(1)
-            spNew.LockAspectRatio = msoTrue
-            spNew.Width = CentimetersToPoints(HEADER_LOGO_WIDTH)
-            spNew.WrapFormat.Type = wdWrapSquare
-            spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
-            spNew.Left = docA.Sections(1).PageSetup.PageWidth - spNew.Width - CentimetersToPoints(HEADER_RIGHT_TO_PAGE)
-            'for letterhead templete, put Fishery and Forestry logo at top left
-            If InStr(LCase(docA.BuiltInDocumentProperties("Keywords")), LCase("Letterhead Template with Logo")) > 0 Then
+            'for non-letterhead for printed template
+            'If InStr(LCase(docA.BuiltInDocumentProperties("Keywords")), LCase("Letterhead for Printed Paper")) <= 0 Then
+            If InStr(LCase(docA.BuiltInDocumentProperties("Keywords")), "letterhead for printed paper") <= 0 Then
+                rg.Collapse wdCollapseEnd
+                'use BBName to translate logo name to building block name
+                Set rgTmp = docTmp.BuildingBlockEntries(BBName(sBG)).Insert(rg)
+                Set spNew = rgTmp.ShapeRange(1)
+                spNew.LockAspectRatio = msoTrue
+                If LCase(sBG) = "for" Then
+                    spNew.Width = CentimetersToPoints(7)
+                Else
+                    spNew.Width = CentimetersToPoints(HEADER_LOGO_WIDTH)
+                End If
+                spNew.WrapFormat.Type = wdWrapSquare
+                spNew.RelativeHorizontalPosition = wdRelativeHorizontalPositionPage
+                'for letterhead templete, put Fishery and Forestry logo at top left
                 If LCase(sBG) = "fis" Or LCase(sBG) = "for" Then
                     spNew.Left = CentimetersToPoints(HEADER_RIGHT_TO_PAGE)
+                Else
+                    spNew.Left = docA.Sections(1).PageSetup.PageWidth - spNew.Width - CentimetersToPoints(HEADER_RIGHT_TO_PAGE)
                 End If
+                Set rg = docA.Sections(1).Headers(wdHeaderFooterFirstPage).Range
+                    For Each cc In rg.ContentControls
+                        cc.LockContents = False
+                    Next cc
+                    For Each pr In rg.Paragraphs
+                        pr.RightIndent = 0
+                        pr.LeftIndent = 0
+                        pr.Alignment = IIf((LCase(sBG) = "fis" Or LCase(sBG) = "for"), wdAlignParagraphRight, wdAlignParagraphLeft)
+                    Next
+                spNew.RelativeVerticalPosition = wdRelativeVerticalPositionPage
+                spNew.Top = CentimetersToPoints(HEADER_TOP_TO_PAGE)
             End If
-            spNew.RelativeVerticalPosition = wdRelativeVerticalPositionPage
-            spNew.Top = CentimetersToPoints(HEADER_TOP_TO_PAGE)
             
             'deal with the footer part
             'delete all images in footer in all sections
@@ -96,8 +114,9 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
                     End If
                 Next iFt
             Next sec
-            'for letterhead template
-            If InStr(LCase(ActiveDocument.BuiltInDocumentProperties("Keywords")), LCase("Letterhead Template with Logo")) > 0 Then
+            'for non-letterhead for printed templates, go on proceed
+            'If InStr(LCase(ActiveDocument.BuiltInDocumentProperties("Keywords")), LCase("Letterhead for Printed Paper")) <= 0 Then
+            If InStr(LCase(docA.BuiltInDocumentProperties("Keywords")), "letterhead for printed paper") <= 0 Then
                 'set range
                 If docA.Sections(1).Footers(wdHeaderFooterFirstPage).Exists Then
                     Set rg = docA.Sections(1).Footers(wdHeaderFooterFirstPage).Range
@@ -105,8 +124,8 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
                     Set rg = docA.Sections(1).Footers(wdHeaderFooterPrimary).Range
                 End If
                 'insert footer logo is necessary
-                Select Case sBG
-                Case "Bio", "NZF"    'for those groups, insert MPI logo
+                Select Case LCase(sBG)
+                Case "bio", "nzf"    'for those groups, insert MPI logo
                     rg.Collapse wdCollapseStart
                     Set rgTmp = docTmp.BuildingBlockEntries("mpi").Insert(rg)
                     If rgTmp.ShapeRange.Count > 0 Then
@@ -129,6 +148,27 @@ Public Function SetLogo(docA As Document, Optional sPty As String = "")
                     End If
                 End Select
             End If
+            If docA.Sections(1).Footers(wdHeaderFooterFirstPage).Exists Then
+                Set rg = docA.Sections(1).Footers(wdHeaderFooterFirstPage).Range
+                For Each pr In rg.Paragraphs
+                    If InStr(LCase(pr.Range.Text), "govt.nz") > 0 Then
+                        Select Case LCase(sBG)
+                        Case "bio"
+                            pr.Range.Text = "biosecurity.govt.nz"
+                        Case "nzf"
+                            pr.Range.Text = "foodsafety.govt.nz"
+                        Case "mpi"
+                            pr.Range.Text = "mpi.govt.nz"
+                        Case "fis"
+                            pr.Range.Text = "fisheries.govt.nz"
+                        Case "for"
+                            pr.Range.Text = "teururakau.govt.nz"
+                        Case Else
+                        End Select
+                    End If
+                Next pr
+            End If
+            Exit For
         End If
     Next docTmp
     'for non-bath convert call, write back to normal.dotm
@@ -149,11 +189,11 @@ End Function
 'parse building block name for letterhead template
 Public Function BBName(s As String) As String
     BBName = s
-    If InStr(LCase(ActiveDocument.BuiltInDocumentProperties("Keywords")), LCase("Letterhead Template with Logo")) > 0 Then
+    'If InStr(LCase(ActiveDocument.BuiltInDocumentProperties("Keywords")), LCase("Letterhead Template with Logo")) > 0 Then
         If LCase(s) = "bio" Or LCase(s) = "nzf" Then
             BBName = s & "_ori" 'use original logo (no mpi part) for bio and NZF
         End If
-    End If
+    'End If
 End Function
 
 Public Sub ShowDIP(control As IRibbonControl)
@@ -248,7 +288,8 @@ Public Function OBClick(ob As control)
     sBG = ""
     Dim ctl As control
     For Each ctl In fmLogo.frmImage.Controls
-        If Right(ctl.Name, Len(ctl.Name) - 3) = Right(ob.Name, Len(ob.Name) - 2) & IIf(docA.BuiltInDocumentProperties("Keywords") = "Letterhead Template with Logo" And (Right(ob.Name, Len(ob.Name) - 2) = "Bio" Or Right(ob.Name, Len(ob.Name) - 2) = "NZF"), "_ori", "") Then
+        'If Right(ctl.Name, Len(ctl.Name) - 3) = Right(ob.Name, Len(ob.Name) - 2) & IIf(docA.BuiltInDocumentProperties("Keywords") = "Letterhead Template with Logo" And (Right(ob.Name, Len(ob.Name) - 2) = "Bio" Or Right(ob.Name, Len(ob.Name) - 2) = "NZF"), "_ori", "") Then
+        If Right(ctl.Name, Len(ctl.Name) - 3) = Right(ob.Name, Len(ob.Name) - 2) Then
             sBG = Right(ob.Name, Len(ob.Name) - 2)
             ctl.Visible = True
         Else
